@@ -1,0 +1,124 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  email     String   @unique
+  password  String
+  rol       String   @default("admin")
+  creadoEn  DateTime @default(now())
+}
+
+model Candidato {
+  id               Int                @id @default(autoincrement())
+  ci               String             @unique
+  nombre           String
+  telefono         String?
+  email            String?
+  pin              String             @default("")
+  creadoEn         DateTime           @default(now())
+
+  solicitudes      Solicitud[]
+  tokenSeguimiento TokenSeguimiento?
+}
+
+
+
+model Hotel {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  direccion String?
+  creadoEn  DateTime @default(now())
+}
+
+model Plaza {
+  id          Int      @id @default(autoincrement())
+  nombre      String
+  requisitos  String
+  funciones   String
+  activo      Boolean  @default(true)
+
+  solicitudes Solicitud[]
+}
+
+model Solicitud {
+  id          Int        @id @default(autoincrement())
+  candidatoId Int
+  plazaId     Int
+  plazaNombre String
+  estado      String     @default("pendiente")
+  creadoEn    DateTime   @default(now())
+
+  candidato   Candidato  @relation(fields: [candidatoId], references: [id])
+  plaza       Plaza      @relation(fields: [plazaId], references: [id])
+
+  @@unique([candidatoId, plazaId])
+
+  fechaNacimiento    String?
+  edad               Int?
+  sexo               String?
+  colorPiel          String?
+  colorPelo          String?
+  peso               Float?
+  estatura           Float?
+  estadoCivil        String?
+  municipioNacimiento String?
+  nombrePadre        String?
+  nombreMadre        String?
+
+  direccion          String?
+  reparto            String?
+  municipio          String?
+  provincia          String?
+  telefonoParticular String?
+  telefonoLaboral    String?
+  telefonoFamiliar  String?
+
+  nivelEscolar       String?
+  especialidad       String?
+
+  profesiones        String?
+  idiomas            String?
+  cursos             String?
+  licenciaConduccion String?
+
+  haTrabajadoTurismo  Boolean?
+  experienciaTurismo  String?
+
+  fuenteProcedencia   String?
+  otraFuente          String?
+
+  trayectoriaPolitica String?
+}
+
+model TokenSeguimiento {
+  id          Int        @id @default(autoincrement())
+  token       String     @unique
+  candidatoId Int        @unique
+  expiracion  DateTime
+  creadoEn    DateTime   @default(now())
+
+  candidato   Candidato  @relation(fields: [candidatoId], references: [id])
+}
+
+
+
+
+
+
+
+
