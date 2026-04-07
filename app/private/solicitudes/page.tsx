@@ -80,7 +80,7 @@ export default function SolicitudesPage() {
       if (Array.isArray(data)) {
         setSolicitudes(data);
       } else {
-        console.error("Error: la API devolvió un objeto en lugar de array", data);
+        console.error("Error: la API devolvio un objeto en lugar de array", data);
         setSolicitudes([]);
       }
     } catch (error) {
