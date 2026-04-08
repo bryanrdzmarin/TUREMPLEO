@@ -380,6 +380,7 @@ function SolicitarForm() {
         return;
       }
 
+      setToken(data.pin);
       setSuccess(true);
     } catch {
       setError("Error de conexión");
@@ -409,18 +410,26 @@ function SolicitarForm() {
               Su solicitud ha sido registrada exitosamente.
             </p>
             {token && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                <p className="text-sm text-yellow-800 font-semibold">Token de seguimiento:</p>
-                <p className="text-xl font-mono text-yellow-900">{token}</p>
-                <p className="text-xs text-yellow-600 mt-2">Guarde este token para consultar el estado de su solicitud</p>
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-300 rounded-xl p-6 mb-6">
+                <p className="text-sm text-blue-700 font-semibold mb-2">Su PIN de seguimiento:</p>
+                <p className="text-4xl font-mono font-bold text-[#002A8F] tracking-widest">{token}</p>
+                <p className="text-xs text-blue-600 mt-3">Guarde este PIN para consultar el estado de su solicitud</p>
               </div>
             )}
-            <button
-              onClick={() => router.push("/")}
-              className="px-6 py-2 bg-[#002A8F] text-white font-semibold rounded-lg hover:bg-[#003a99] transition-colors"
-            >
-              Volver al Inicio
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={() => router.push("/")}
+                className="px-6 py-2 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Volver al Inicio
+              </button>
+              <button
+                onClick={() => router.push("/estado")}
+                className="px-6 py-2 bg-[#002A8F] text-white font-semibold rounded-lg hover:bg-[#003a99] transition-colors"
+              >
+                Consultar Estado
+              </button>
+            </div>
           </div>
         </div>
       </div>

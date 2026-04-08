@@ -103,6 +103,7 @@ model Solicitud {
   otraFuente          String?
 
   trayectoriaPolitica String?
+  pin                String?
 }
 
 model TokenSeguimiento {

@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendPinEmail } from "@/lib/email";
 
 interface SolicitudInput {
   ci: string;
@@ -81,12 +82,36 @@ export async function POST(request: NextRequest): Promise<Response> {
       );
     }
 
+    const pin = Math.floor(100000 + Math.random() * 900000).toString();
+
+    if (!data.email) {
+      return new Response(
+        JSON.stringify({ error: "El email es obligatorio para enviar su PIN de seguimiento" }),
+        { status: 400 }
+      );
+    }
+
+    const emailSent = await sendPinEmail(
+      data.email,
+      data.nombre,
+      pin,
+      data.plazaNombre
+    );
+
+    if (!emailSent) {
+      return new Response(
+        JSON.stringify({ error: "No se pudo enviar el email de confirmación. Por favor, verifique su correo e intente nuevamente." }),
+        { status: 500 }
+      );
+    }
+
     const solicitud = await prisma.solicitud.create({
       data: {
         candidatoId: candidato.id,
         plazaId: data.plazaId,
         plazaNombre: data.plazaNombre,
         estado: "pendiente",
+        pin: pin,
         fechaNacimiento: data.fechaNacimiento || null,
         edad: data.edad || null,
         sexo: data.sexo || null,
