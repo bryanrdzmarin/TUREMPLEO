@@ -29,7 +29,6 @@ model Candidato {
   nombre           String
   telefono         String?
   email            String?
-  pin              String             @default("")
   creadoEn         DateTime           @default(now())
 
   solicitudes      Solicitud[]

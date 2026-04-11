@@ -7,6 +7,7 @@ import { useState } from "react";
 const navItems = [
   { href: "/private/plazas", label: "Plazas" },
   { href: "/private/solicitudes", label: "Solicitudes" },
+  { href: "/private/candidatos", label: "Candidatos" },
 ];
 
 export default function PrivateLayout({ children }: { children: React.ReactNode }) {
@@ -14,11 +15,11 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="h-screen flex bg-gray-50 overflow-hidden">
       <aside
         className={`
           fixed inset-y-0 left-0 z-40 w-64 bg-[#002A8F] text-white transform transition-transform duration-300 ease-in-out
-          md:relative md:translate-x-0
+          md:relative md:translate-x-0 md:h-screen md:overflow-y-auto
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
@@ -68,8 +69,8 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
         />
       )}
 
-      <main className="flex-1 min-w-0">
-        <header className="md:hidden bg-white shadow-sm p-4 flex items-center">
+      <main className="flex-1 min-w-0 flex flex-col h-full overflow-hidden">
+        <header className="md:hidden bg-white shadow-sm p-4 flex items-center flex-shrink-0">
           <button
             onClick={() => setSidebarOpen(true)}
             className="p-2 rounded-lg hover:bg-gray-100"
@@ -81,7 +82,7 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
           <span className="ml-3 font-semibold text-gray-800">TurEmpleo</span>
         </header>
 
-        <div className="p-4 md:p-8">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8">
           {children}
         </div>
       </main>
