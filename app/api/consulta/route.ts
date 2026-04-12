@@ -36,6 +36,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       include: {
         candidato: true,
         plaza: true,
+        cita: true,
       },
       orderBy: {
         creadoEn: "desc"
@@ -49,11 +50,42 @@ export async function POST(request: NextRequest): Promise<Response> {
       );
     }
 
+    let mensaje = "";
+    let estadoMostrar = "";
+
+    if (solicitud.entrevistaPasada === true) {
+      estadoMostrar = "entrevista_aprobada";
+      mensaje = "Has aprobado la entrevista presencial. Ya formas parte de la reserva laboral de turempleo. Seguiremos aquí hasta que haya vacantes disponibles.";
+    } else if (solicitud.entrevistaPasada === false) {
+      estadoMostrar = "entrevista_rechazada";
+      mensaje = `Has sido rechazado en la entrevista presencial para la plaza ${solicitud.plazaNombre}. La entidad se reserva los motivos del rechazo.`;
+    } else if (solicitud.estado === "pendiente") {
+      estadoMostrar = "pendiente";
+      mensaje = "Su solicitud está siendo revisada. Le notificaremos cuando haya una actualización.";
+    } else if (solicitud.estado === "rechazado") {
+      estadoMostrar = "rechazado";
+      mensaje = "Lamentamos informarle que su solicitud no ha sido aprobada en esta ocasión.";
+    } else if (solicitud.estado === "aprobado") {
+      if (solicitud.citado && solicitud.cita) {
+        estadoMostrar = "citado";
+        const fechaFormateada = new Date(solicitud.cita.fechaCita).toLocaleDateString("es-ES", {
+          day: "2-digit",
+          month: "long",
+          year: "numeric"
+        });
+        mensaje = `Tiene cita para entrevista presencial el día ${fechaFormateada}. Debe dirigirse a ${solicitud.cita.direccion} y traer: ${solicitud.cita.requisitos}`;
+      } else {
+        estadoMostrar = "aprobado";
+        mensaje = "Su solicitud ha sido aprobada. Pendiente de citar para entrevista presencial.";
+      }
+    }
+
     return Response.json({
       nombre: solicitud.candidato.nombre,
       ci: solicitud.candidato.ci,
       plaza: solicitud.plazaNombre,
-      estado: solicitud.estado,
+      estado: estadoMostrar,
+      mensaje: mensaje,
       fecha: solicitud.creadoEn,
     });
 

@@ -32,7 +32,7 @@ model Candidato {
   creadoEn         DateTime           @default(now())
 
   solicitudes      Solicitud[]
-  tokenSeguimiento TokenSeguimiento?
+ 
 }
 
 
@@ -103,21 +103,25 @@ model Solicitud {
 
   trayectoriaPolitica String?
   pin                String?
-}
+  citado             Boolean  @default(false)
+  entrevistaPasada   Boolean?
+  fechaEvaluacion   DateTime?
 
-model TokenSeguimiento {
-  id          Int        @id @default(autoincrement())
-  token       String     @unique
-  candidatoId Int        @unique
-  expiracion  DateTime
-  creadoEn    DateTime   @default(now())
-
-  candidato   Candidato  @relation(fields: [candidatoId], references: [id])
+  cita               Cita?
 }
 
 
 
+model Cita {
+  id              Int      @id @default(autoincrement())
+  solicitudId     Int      @unique
+  fechaCita       String
+  requisitos      String
+  direccion       String
+  creadoEn        DateTime @default(now())
 
+  solicitud       Solicitud @relation(fields: [solicitudId], references: [id])
+}
 
 
 

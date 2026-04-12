@@ -7,6 +7,7 @@ interface Resultado {
   ci: string;
   plaza: string;
   estado: string;
+  mensaje: string;
   fecha: string;
 }
 
@@ -68,25 +69,43 @@ export default function EstadoPage() {
         return {
           color: "bg-yellow-100 text-yellow-800 border-yellow-300",
           icono: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
-          mensaje: "Su solicitud está siendo revisada. Le notificaremos cuando haya una actualización.",
+          titulo: "Solicitud en Revisión",
         };
       case "aprobado":
         return {
           color: "bg-green-100 text-green-800 border-green-300",
           icono: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",
-          mensaje: "¡Felicidades! Su solicitud ha sido aprobada. Nos pondremos en contacto con usted.",
+          titulo: "Solicitud Aprobada",
+        };
+      case "citado":
+        return {
+          color: "bg-blue-100 text-blue-800 border-blue-300",
+          icono: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
+          titulo: "Tiene Cita Programada",
+        };
+      case "entrevista_aprobada":
+        return {
+          color: "bg-emerald-100 text-emerald-800 border-emerald-300",
+          icono: "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z",
+          titulo: "En Reserva Laboral",
+        };
+      case "entrevista_rechazada":
+        return {
+          color: "bg-red-100 text-red-800 border-red-300",
+          icono: "M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z",
+          titulo: "Entrevista No Aprobada",
         };
       case "rechazado":
         return {
           color: "bg-red-100 text-red-800 border-red-300",
           icono: "M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z",
-          mensaje: "Lamentamos informarle que su solicitud no ha sido aprobada en esta ocasión.",
+          titulo: "Solicitud Rechazada",
         };
       default:
         return {
           color: "bg-gray-100 text-gray-800 border-gray-300",
           icono: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-          mensaje: "",
+          titulo: "Estado",
         };
     }
   };
@@ -200,11 +219,11 @@ export default function EstadoPage() {
                   d={getEstadoInfo(resultado.estado).icono}
                 />
               </svg>
-              <h3 className="text-xl font-bold mb-2 capitalize">
-                Estado: {resultado.estado}
+              <h3 className="text-xl font-bold mb-2">
+                {getEstadoInfo(resultado.estado).titulo}
               </h3>
               <p className="text-sm opacity-90">
-                {getEstadoInfo(resultado.estado).mensaje}
+                {resultado.mensaje}
               </p>
             </div>
           </div>
