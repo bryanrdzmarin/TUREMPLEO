@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 const navItems = [
-  { href: "/private/plazas", label: "Plazas" },
-  { href: "/private/solicitudes", label: "Solicitudes" },
-  { href: "/private/candidatos", label: "Candidatos" },
+  { href: "/plazas", label: "Plazas" },
+  { href: "/solicitudes", label: "Solicitudes" },
+  { href: "/candidatos", label: "Candidatos" },
 ];
 
 export default function PrivateLayout({ children }: { children: React.ReactNode }) {
