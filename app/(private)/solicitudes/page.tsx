@@ -13,6 +13,7 @@ interface Candidato {
 interface Plaza {
   id: number;
   nombre: string;
+  requisitos: string;
 }
 
 interface Solicitud {
@@ -24,6 +25,7 @@ interface Solicitud {
   creadoEn: string;
   candidato: Candidato;
   plaza: Plaza | null;
+  requisitosCumplidos: string | null;
   fechaNacimiento: string | null;
   edad: number | null;
   sexo: string | null;
@@ -53,6 +55,7 @@ interface Solicitud {
   fuenteProcedencia: string | null;
   otraFuente: string | null;
   trayectoriaPolitica: string | null;
+  motivoDenegacion: string | null;
 }
 
 const estados = [
@@ -68,6 +71,9 @@ export default function SolicitudesPage() {
   const [filtroEstado, setFiltroEstado] = useState("todos");
   const [busqueda, setBusqueda] = useState("");
   const [detalleSolicitud, setDetalleSolicitud] = useState<Solicitud | null>(null);
+  const [solicitudADenegar, setSolicitudADenegar] = useState<Solicitud | null>(null);
+  const [motivoDenegacion, setMotivoDenegacion] = useState("");
+  const [denegando, setDenegando] = useState(false);
 
   useEffect(() => {
     fetchSolicitudes();
@@ -91,12 +97,17 @@ export default function SolicitudesPage() {
     }
   };
 
-  const cambiarEstado = async (id: number, nuevoEstado: string) => {
+  const cambiarEstado = async (id: number, nuevoEstado: string, motivo?: string) => {
     try {
+      const body: { estado: string; motivoDenegacion?: string } = { estado: nuevoEstado };
+      if (nuevoEstado === "rechazado" && motivo) {
+        body.motivoDenegacion = motivo;
+      }
+      
       const res = await fetch(`/api/solicitudes?id=${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ estado: nuevoEstado })
+        body: JSON.stringify(body)
       });
       if (res.ok) {
         fetchSolicitudes();
@@ -231,7 +242,7 @@ export default function SolicitudesPage() {
                               </svg>
                             </button>
                             <button
-                              onClick={() => cambiarEstado(s.id, "rechazado")}
+                              onClick={() => setSolicitudADenegar(s)}
                               className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
                               title="Rechazar"
                             >
@@ -343,10 +354,30 @@ export default function SolicitudesPage() {
                   <div><span className="text-gray-500">Detalles:</span> <span className="font-medium">{detalleSolicitud.trayectoriaPolitica || "-"}</span></div>
                 </div>
 
+                {detalleSolicitud.plaza && (
+                  <div className="bg-blue-50 p-3 rounded-lg">
+                    <h3 className="font-semibold text-[#002A8F] mb-2">Requisitos de la Plaza</h3>
+                    <div className="text-sm text-gray-700 whitespace-pre-wrap">{detalleSolicitud.plaza.requisitos || "Sin requisitos definidos"}</div>
+                  </div>
+                )}
+
+                {detalleSolicitud.requisitosCumplidos && (
+                  <div className="bg-green-50 p-3 rounded-lg">
+                    <h3 className="font-semibold text-[#002A8F] mb-2">Requisitos Cumplidos por el Candidato</h3>
+                    <div className="text-sm text-gray-700 whitespace-pre-wrap">{detalleSolicitud.requisitosCumplidos}</div>
+                  </div>
+                )}
+
                 <div className="border-t pt-4 flex flex-wrap gap-4 text-xs md:text-sm">
                   <div><span className="text-gray-500">Plaza:</span> <span className="font-medium">{detalleSolicitud.plazaNombre}</span></div>
                   <div><span className="text-gray-500">Estado:</span> <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${getEstadoColor(detalleSolicitud.estado)}`}>{detalleSolicitud.estado.charAt(0).toUpperCase() + detalleSolicitud.estado.slice(1)}</span></div>
                   <div><span className="text-gray-500">Fecha:</span> <span className="font-medium">{formatFecha(detalleSolicitud.creadoEn)}</span></div>
+                  {detalleSolicitud.estado === "rechazado" && detalleSolicitud.motivoDenegacion && (
+                    <div className="w-full mt-2">
+                      <span className="text-gray-500">Motivo de denegación:</span>
+                      <p className="text-red-600 font-medium">{detalleSolicitud.motivoDenegacion}</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -356,6 +387,55 @@ export default function SolicitudesPage() {
                   className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {solicitudADenegar && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => { setSolicitudADenegar(null); setMotivoDenegacion(""); }}>
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">Denegar Solicitud</h2>
+              <p className="text-gray-600 mb-4">
+                ¿Está seguro que desea denegar la solicitud de <span className="font-semibold">{solicitudADenegar.candidato.nombre}</span> para la plaza <span className="font-semibold">{solicitudADenegar.plazaNombre}</span>?
+              </p>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Motivo de denegación <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={motivoDenegacion}
+                  onChange={(e) => setMotivoDenegacion(e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-[#002A8F] outline-none"
+                  placeholder="Escriba el motivo por el cual se deniega esta solicitud..."
+                />
+              </div>
+
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => { setSolicitudADenegar(null); setMotivoDenegacion(""); }}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!motivoDenegacion.trim()) return;
+                    setDenegando(true);
+                    await cambiarEstado(solicitudADenegar.id, "rechazado", motivoDenegacion);
+                    setSolicitudADenegar(null);
+                    setMotivoDenegacion("");
+                    setDenegando(false);
+                  }}
+                  disabled={!motivoDenegacion.trim() || denegando}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {denegando ? "Denegando..." : "Confirmar Denegación"}
                 </button>
               </div>
             </div>

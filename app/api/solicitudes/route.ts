@@ -38,6 +38,7 @@ interface SolicitudInput {
   fuenteProcedencia?: string;
   otraFuente?: string;
   trayectoriaPolitica?: string;
+  requisitosCumplidos?: string;
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
@@ -141,6 +142,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         fuenteProcedencia: data.fuenteProcedencia || null,
         otraFuente: data.otraFuente || null,
         trayectoriaPolitica: data.trayectoriaPolitica || null,
+        requisitosCumplidos: data.requisitosCumplidos || null,
       }
     });
 
@@ -188,7 +190,7 @@ export async function PUT(request: NextRequest): Promise<Response> {
       );
     }
 
-    const data = await request.json() as { estado?: string };
+    const data = await request.json() as { estado?: string; motivoDenegacion?: string };
     
     if (!data.estado || !["pendiente", "aprobado", "rechazado"].includes(data.estado)) {
       return new Response(
@@ -197,9 +199,15 @@ export async function PUT(request: NextRequest): Promise<Response> {
       );
     }
 
+    const updateData: { estado: string; motivoDenegacion?: string | null } = { estado: data.estado };
+    
+    if (data.estado === "rechazado" && data.motivoDenegacion) {
+      updateData.motivoDenegacion = data.motivoDenegacion;
+    }
+
     const solicitud = await prisma.solicitud.update({
       where: { id: parseInt(id) },
-      data: { estado: data.estado }
+      data: updateData
     });
 
     return Response.json(solicitud);

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { sendAprobacionEmail } from "@/lib/email";
 
 export async function GET(request: Request): Promise<Response> {
   try {
@@ -230,6 +231,25 @@ export async function PUT(request: Request): Promise<Response> {
       );
     }
 
+    const solicitudActual = await prisma.solicitud.findUnique({
+      where: { id },
+      include: {
+        candidato: {
+          select: {
+            nombre: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    if (!solicitudActual) {
+      return new Response(
+        JSON.stringify({ error: "Solicitud no encontrada" }),
+        { status: 404 }
+      );
+    }
+
     const candidato = await prisma.solicitud.update({
       where: { id },
       data: { 
@@ -237,6 +257,18 @@ export async function PUT(request: Request): Promise<Response> {
         fechaEvaluacion: new Date()
       }
     });
+
+    if (entrevistaPasada && solicitudActual.candidato.email) {
+      const emailEnviado = await sendAprobacionEmail(
+        solicitudActual.candidato.email,
+        solicitudActual.candidato.nombre,
+        solicitudActual.plazaNombre
+      );
+      
+      if (!emailEnviado) {
+        console.warn("No se pudo enviar el email de aprobación al candidato:", solicitudActual.candidato.email);
+      }
+    }
 
     return Response.json(candidato);
   } catch (error) {

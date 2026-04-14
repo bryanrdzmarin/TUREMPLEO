@@ -11,6 +11,36 @@ interface Plaza {
   activo: boolean;
 }
 
+const parseRequisitos = (texto: string): { tieneFormato: boolean; lista: string[]; opcionesMultiple: { texto: string; opciones: string[] }[] } => {
+  if (!texto) return { tieneFormato: false, lista: [], opcionesMultiple: [] };
+  
+  let listaFiltrada: string[] = [];
+  const opcionesMultiple: { texto: string; opciones: string[] }[] = [];
+  
+  const lineas = texto.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  
+  if (lineas.length > 0) {
+    for (const linea of lineas) {
+      const cleanLinea = linea.replace(/^[-•*\d.)]+\s*/, '').trim();
+      if (cleanLinea.length === 0) continue;
+      
+      if (cleanLinea.includes(' o ') || cleanLinea.includes(' O ')) {
+        const partes = cleanLinea.split(/\s+o\s+/i);
+        opcionesMultiple.push({ texto: cleanLinea, opciones: partes });
+      } else if (cleanLinea.includes(',') && cleanLinea.length < 100) {
+        const partes = cleanLinea.split(',').map(p => p.trim()).filter(p => p.length > 0);
+        listaFiltrada.push(...partes);
+      } else {
+        listaFiltrada.push(cleanLinea);
+      }
+    }
+  }
+  
+  const tieneFormato = listaFiltrada.length > 0 || opcionesMultiple.length > 0;
+  
+  return { tieneFormato, lista: listaFiltrada, opcionesMultiple };
+};
+
 interface FormErrors {
   nombre?: string;
   primerApellido?: string;
@@ -56,16 +86,30 @@ function SolicitarForm() {
   const [token, setToken] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const [haTrabajadoTurismoChecked, setHaTrabajadoTurismoChecked] = useState(false);
+  const [plazaSeleccionada, setPlazaSeleccionada] = useState<Plaza | null>(null);
+  const [requisitosData, setRequisitosData] = useState<{ tieneFormato: boolean; lista: string[]; opcionesMultiple: { texto: string; opciones: string[] }[] }>({ tieneFormato: false, lista: [], opcionesMultiple: [] });
+  const [requisitosCumplidos, setRequisitosCumplidos] = useState<string[]>([]);
+  const [requisitosSeleccionadosMultiple, setRequisitosSeleccionadosMultiple] = useState<{ [key: string]: string }>({});
+  const [requisitosTexto, setRequisitosTexto] = useState("");
 
   useEffect(() => {
     fetch("/api/plazas")
       .then(res => res.json())
       .then(data => {
         setPlazas(data);
+        if (plazaIdParam) {
+          const plaza = data.find((p: Plaza) => p.id === parseInt(plazaIdParam));
+          if (plaza) {
+            setPlazaSeleccionada(plaza);
+            const parsed = parseRequisitos(plaza.requisitos);
+            setRequisitosData(parsed);
+            setRequisitosCumplidos(parsed.tieneFormato ? parsed.lista : []);
+          }
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [plazaIdParam]);
 
   const hoy = new Date();
   const hace18Anos = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate());
@@ -327,43 +371,53 @@ function SolicitarForm() {
 
     const haTrabajadoTurismo = formData.get("haTrabajadoTurismo") === "on";
 
-    const payload = {
-      ci: formData.get("ci"),
-      nombre: nombreCompleto,
-      telefono: formData.get("telefono") || null,
-      email: formData.get("email") || null,
-      plazaId: plazaId,
-      plazaNombre: plazaSeleccionada?.nombre || "",
-      fechaNacimiento: formData.get("fechaNacimiento") || null,
-      edad: formData.get("edad") ? parseInt(formData.get("edad") as string) : null,
-      sexo: formData.get("sexo") || null,
-      colorPiel: formData.get("colorPiel") || null,
-      colorPelo: formData.get("colorPelo") || null,
-      peso: formData.get("peso") ? parseFloat(formData.get("peso") as string) : null,
-      estatura: formData.get("estatura") ? parseFloat(formData.get("estatura") as string) : null,
-      estadoCivil: formData.get("estadoCivil") || null,
-      municipioNacimiento: formData.get("municipioNacimiento") || null,
-      nombrePadre: formData.get("nombrePadre") || null,
-      nombreMadre: formData.get("nombreMadre") || null,
-      direccion: formData.get("direccion") || null,
-      reparto: formData.get("reparto") || null,
-      municipio: formData.get("municipio") || null,
-      provincia: formData.get("provincia") || null,
-      telefonoParticular: formData.get("telefonoParticular") || null,
-      telefonoLaboral: formData.get("telefonoLaboral") || null,
-      telefonoFamiliar: formData.get("telefonoFamiliar") || null,
-      nivelEscolar: nivelEscolar,
-      especialidad: formData.get("especialidad") || null,
-      profesiones: formData.get("profesiones") || null,
-      idiomas: formData.get("idiomas") || null,
-      cursos: formData.get("cursos") || null,
-      licenciaConduccion: formData.get("licenciaConduccion") || null,
-      haTrabajadoTurismo: haTrabajadoTurismo,
-      experienciaTurismo: formData.get("experienciaTurismo") || null,
-      fuenteProcedencia: fuenteProcedencia,
-      otraFuente: formData.get("otraFuente") || null,
-      trayectoriaPolitica: formData.get("trayectoriaPolitica") || null,
-    };
+const requisitosMultipleJson = Object.values(requisitosSeleccionadosMultiple).filter(v => v);
+      
+      const requisitosCumplidosFinal = [
+        ...requisitosCumplidos,
+        ...requisitosMultipleJson
+      ].join(", ");
+
+      const payload = {
+        ci: formData.get("ci"),
+        nombre: nombreCompleto,
+        telefono: formData.get("telefono") || null,
+        email: formData.get("email") || null,
+        plazaId: plazaId,
+        plazaNombre: plazaSeleccionada?.nombre || "",
+        fechaNacimiento: formData.get("fechaNacimiento") || null,
+        edad: formData.get("edad") ? parseInt(formData.get("edad") as string) : null,
+        sexo: formData.get("sexo") || null,
+        colorPiel: formData.get("colorPiel") || null,
+        colorPelo: formData.get("colorPelo") || null,
+        peso: formData.get("peso") ? parseFloat(formData.get("peso") as string) : null,
+        estatura: formData.get("estatura") ? parseFloat(formData.get("estatura") as string) : null,
+        estadoCivil: formData.get("estadoCivil") || null,
+        municipioNacimiento: formData.get("municipioNacimiento") || null,
+        nombrePadre: formData.get("nombrePadre") || null,
+        nombreMadre: formData.get("nombreMadre") || null,
+        direccion: formData.get("direccion") || null,
+        reparto: formData.get("reparto") || null,
+        municipio: formData.get("municipio") || null,
+        provincia: formData.get("provincia") || null,
+        telefonoParticular: formData.get("telefonoParticular") || null,
+        telefonoLaboral: formData.get("telefonoLaboral") || null,
+        telefonoFamiliar: formData.get("telefonoFamiliar") || null,
+        nivelEscolar: nivelEscolar,
+        especialidad: formData.get("especialidad") || null,
+        profesiones: formData.get("profesiones") || null,
+        idiomas: formData.get("idiomas") || null,
+        cursos: formData.get("cursos") || null,
+        licenciaConduccion: formData.get("licenciaConduccion") || null,
+        haTrabajadoTurismo: haTrabajadoTurismo,
+        experienciaTurismo: formData.get("experienciaTurismo") || null,
+        fuenteProcedencia: fuenteProcedencia,
+        otraFuente: formData.get("otraFuente") || null,
+        trayectoriaPolitica: formData.get("trayectoriaPolitica") || null,
+        requisitosCumplidos: requisitosData.tieneFormato 
+          ? requisitosCumplidosFinal
+          : requisitosTexto || null,
+      };
 
     try {
       const res = await fetch("/api/solicitudes", {
@@ -991,6 +1045,19 @@ function SolicitarForm() {
                 name="plazaId"
                 defaultValue={plazaIdParam || ""}
                 className={inputClass(!!errors.plazaId)}
+                  onChange={(e) => {
+                  const plazaId = parseInt(e.target.value);
+                  const plaza = plazas.find(p => p.id === plazaId) || null;
+                  setPlazaSeleccionada(plaza);
+                  if (plaza) {
+                    const parsed = parseRequisitos(plaza.requisitos);
+                    setRequisitosData(parsed);
+                    setRequisitosCumplidos(parsed.tieneFormato ? parsed.lista : []);
+                    setRequisitosTexto("");
+                  } else {
+                    setRequisitosData({ tieneFormato: false, lista: [], opcionesMultiple: [] });
+                  }
+                }}
               >
                 <option value="">Seleccione una plaza</option>
                 {plazas.map((plaza) => (
@@ -1001,6 +1068,86 @@ function SolicitarForm() {
               </select>
               {errors.plazaId && <p className={errorClass}>{errors.plazaId}</p>}
             </div>
+
+            {plazaSeleccionada && requisitosData.lista.length > 0 && (
+              <>
+                <div className="border-b-2 border-[#002A8F] pb-2 mb-4">
+                  <h2 className="text-xl font-semibold text-[#002A8F]">Requisitos de la Plaza</h2>
+                </div>
+
+                <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-gray-600 mb-3">
+                    A continuación se muestran los requisitos de la plaza seleccionada. 
+                    Seleccione aquellos que usted cumple (están marcados por defecto):
+                  </p>
+
+                  {requisitosData.tieneFormato ? (
+                    <div className="space-y-3">
+                      {requisitosData.opcionesMultiple.map((item, idx) => (
+                        <div key={`multi-${idx}`} className="bg-white rounded-lg p-3 border border-blue-200">
+                          <p className="text-sm font-medium text-gray-700 mb-2">Seleccione una opción:</p>
+                          <div className="flex flex-wrap gap-3">
+                            {item.opciones.map((opcion, opIdx) => (
+                              <label key={opIdx} className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                  type="radio"
+                                  name={`opcionMultiple-${idx}`}
+                                  value={opcion}
+                                  checked={requisitosSeleccionadosMultiple[`${idx}`] === opcion}
+                                  onChange={(e) => {
+                                    setRequisitosSeleccionadosMultiple(prev => ({
+                                      ...prev,
+                                      [idx]: e.target.value
+                                    }));
+                                  }}
+                                  className="w-4 h-4 text-[#002A8F]"
+                                />
+                                <span className="text-sm text-gray-700">{opcion}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {requisitosData.lista.map((req, index) => (
+                        <label key={index} className="flex items-start gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            name="requisitosCumplidos"
+                            value={req}
+                            checked={requisitosCumplidos.includes(req)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setRequisitosCumplidos([...requisitosCumplidos, req]);
+                              } else {
+                                setRequisitosCumplidos(requisitosCumplidos.filter(r => r !== req));
+                              }
+                            }}
+                            className="w-4 h-4 mt-1 text-[#002A8F] rounded"
+                          />
+                          <span className="text-sm text-gray-700">{req}</span>
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap mb-3">{plazaSeleccionada.requisitos}</p>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Indique los requisitos que cumple:
+                      </label>
+                      <textarea
+                        name="requisitosCumplidosTexto"
+                        rows={4}
+                        value={requisitosTexto}
+                        onChange={(e) => setRequisitosTexto(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-[#002A8F] outline-none"
+                        placeholder="Liste los requisitos que cumple..."
+                      />
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

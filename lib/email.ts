@@ -152,3 +152,61 @@ export async function sendCitaEmail(
     return false;
   }
 }
+
+export async function sendAprobacionEmail(
+  email: string,
+  nombre: string,
+  plazaNombre: string
+): Promise<boolean> {
+  try {
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'TurEmpleo <onboarding@resend.dev>',
+      to: email,
+      subject: `¡Felicidades! Ha sido aprobado - ${plazaNombre} - TurEmpleo`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">¡Felicitaciones!</h1>
+            <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">TurEmpleo - Portal de Empleo Turístico</p>
+          </div>
+          
+          <div style="background: white; padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
+            <p style="font-size: 16px; color: #333;">Hola <strong>${nombre}</strong>,</p>
+            
+            <p style="font-size: 16px; color: #333;">
+              Nos complace informarle que ha <strong>APROBADO</strong> el proceso de entrevista y ahora forma parte de la 
+              <strong style="color: #28a745;">RESERVA LABORAL</strong> de nuestra organización.
+            </p>
+            
+            <div style="background: #f8f9fa; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0;">
+              <p style="margin: 0 0 5px 0;"><strong style="color: #28a745;">Plaza:</strong> <span style="font-size: 18px;">${plazaNombre}</span></p>
+            </div>
+            
+            <div style="background: #d4edda; border: 1px solid #28a745; border-radius: 8px; padding: 20px; margin: 25px 0;">
+              <p style="font-size: 16px; color: #155724; margin: 0;">
+                <strong>✓ Ahora usted es parte de nuestra reserva laboral</strong>
+              </p>
+              <p style="font-size: 14px; color: #155724; margin: 10px 0 0 0;">
+                Cuando surja una vacante en su perfil, nos pondremos en contacto con usted.
+              </p>
+            </div>
+            
+            <p style="font-size: 14px; color: #666; margin-top: 30px;">
+              Gracias por su interés en formar parte de nuestro equipo.
+            </p>
+          </div>
+          
+          <div style="background: #f5f5f5; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;">
+            <p style="color: #888; font-size: 12px; margin: 0;">
+              © ${new Date().getFullYear()} TurEmpleo - Todos los derechos reservados
+            </p>
+          </div>
+        </div>
+      `
+    });
+    return true;
+  } catch (error) {
+    console.error('Error enviando email de aprobación:', error);
+    return false;
+  }
+}

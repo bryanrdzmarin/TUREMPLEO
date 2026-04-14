@@ -101,7 +101,9 @@ model Solicitud {
   fuenteProcedencia   String?
   otraFuente          String?
 
-  trayectoriaPolitica String?
+  trayectoriaPolitica    String?
+  requisitosCumplidos String?
+  motivoDenegacion    String?
   pin                String?
   citado             Boolean  @default(false)
   entrevistaPasada   Boolean?
