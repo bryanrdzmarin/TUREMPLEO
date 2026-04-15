@@ -46,6 +46,24 @@ export default function CandidatosPage() {
     direccion: ""
   });
 
+  const [showInfoForm, setShowInfoForm] = useState(false);
+  const [infoFormData, setInfoFormData] = useState({
+    titulacion: "",
+    oficios: "",
+    idiomas: "",
+    idioma: "",
+    nivel: "",
+    lugar: "",
+    cursos: "",
+    faltantes: "",
+    licencia: "",
+    comunitaria: "",
+    familiar: "",
+    resultado: "",
+    desempeno: ""
+  });
+  const [savingInfo, setSavingInfo] = useState(false);
+
   useEffect(() => {
     fetchCandidatos();
   }, []);
@@ -195,64 +213,121 @@ export default function CandidatosPage() {
     }
   };
 
-  const handleAprobarEntrevista = async (candidato: Candidato) => {
-    setEnviando(true);
+  const handleAprobarEntrevista = (candidato: Candidato) => {
+    setCandidatoSeleccionado(candidato);
+    setShowInfoForm(true);
+    setInfoFormData({
+      titulacion: "",
+      oficios: "",
+      idiomas: "",
+      idioma: "",
+      nivel: "",
+      lugar: "",
+      cursos: "",
+      faltantes: "",
+      licencia: "",
+      comunitaria: "",
+      familiar: "",
+      resultado: "",
+      desempeno: ""
+    });
+  };
+
+  const handleRechazarEntrevista = (candidato: Candidato) => {
+    setCandidatoSeleccionado(candidato);
+    setShowInfoForm(true);
+    setInfoFormData({
+      titulacion: "",
+      oficios: "",
+      idiomas: "",
+      idioma: "",
+      nivel: "",
+      lugar: "",
+      cursos: "",
+      faltantes: "",
+      licencia: "",
+      comunitaria: "",
+      familiar: "",
+      resultado: "",
+      desempeno: ""
+    });
+  };
+
+  const guardarInfoYCambiarEstado = async (aprobado: boolean) => {
+    if (!candidatoSeleccionado) return;
+    
+    setSavingInfo(true);
     setError(null);
 
     try {
-      const res = await fetch("/api/candidatos", {
+      const resCheck = await fetch(`/api/informacion-can?candidatoId=${candidatoSeleccionado.candidato.ci}`);
+      
+      let informacionId: number | null = null;
+      
+      if (resCheck.ok) {
+        const existingData = await resCheck.json();
+        informacionId = existingData.id;
+        
+        const resUpdate = await fetch(`/api/informacion-can?id=${informacionId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...infoFormData,
+            candidatoId: candidatoSeleccionado.id
+          })
+        });
+        
+        if (!resUpdate.ok) {
+          const errorData = await resUpdate.json();
+          setError(errorData.error || "Error al actualizar información");
+          setSavingInfo(false);
+          return;
+        }
+      } else {
+        const resCreate = await fetch("/api/informacion-can", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...infoFormData,
+            candidatoId: candidatoSeleccionado.id
+          })
+        });
+        
+        if (!resCreate.ok) {
+          const errorData = await resCreate.json();
+          setError(errorData.error || "Error al guardar información");
+          setSavingInfo(false);
+          return;
+        }
+      }
+
+      setShowInfoForm(false);
+      
+      setEnviando(true);
+      const resEstado = await fetch("/api/candidatos", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          id: candidato.id,
-          entrevistaPasada: true
+          id: candidatoSeleccionado.id,
+          entrevistaPasada: aprobado
         })
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Error al aprobar");
-        return;
+      if (resEstado.ok) {
+        fetchCandidatos();
+        setTab(aprobado ? "aprobados" : "rechazados");
       }
-
-      fetchCandidatos();
-      setTab("aprobados");
     } catch (err) {
-      setError("Error al aprobar candidato");
+      setError("Error al procesar la solicitud");
     } finally {
+      setSavingInfo(false);
       setEnviando(false);
     }
   };
 
-  const handleRechazarEntrevista = async (candidato: Candidato) => {
-    setEnviando(true);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/candidatos", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: candidato.id,
-          entrevistaPasada: false
-        })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Error al rechazar");
-        return;
-      }
-
-      fetchCandidatos();
-      setTab("rechazados");
-    } catch (err) {
-      setError("Error al rechazar candidato");
-    } finally {
-      setEnviando(false);
-    }
+  const closeInfoForm = () => {
+    setShowInfoForm(false);
+    setCandidatoSeleccionado(null);
   };
 
   const formatFecha = (fecha: string) => {
@@ -418,27 +493,18 @@ export default function CandidatosPage() {
             Selecciona un candidato de la tabla para evaluar
           </p>
           
-          {candidatoSeleccionado ? (
+{candidatoSeleccionado ? (
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600">
                 <strong>{candidatoSeleccionado.candidato.nombre}</strong> - {candidatoSeleccionado.candidato.ci}
               </span>
-              <div className="flex gap-3 ml-auto">
-                <button
-                  onClick={() => handleRechazarEntrevista(candidatoSeleccionado)}
-                  disabled={enviando}
-                  className="px-6 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50 font-medium"
-                >
-                  Rechazar
-                </button>
-                <button
-                  onClick={() => handleAprobarEntrevista(candidatoSeleccionado)}
-                  disabled={enviando}
-                  className="px-6 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50 font-medium"
-                >
-                  Aprobar
-                </button>
-              </div>
+              <button
+                onClick={() => handleAprobarEntrevista(candidatoSeleccionado)}
+                disabled={enviando}
+                className="px-6 py-2 bg-[#002A8F] text-white rounded-lg hover:bg-[#003CB5] transition-colors disabled:opacity-50 font-medium"
+              >
+                Evaluar
+              </button>
             </div>
           ) : (
             <p className="text-sm text-gray-400 italic">Clic en un candidato para seleccionarlo</p>
@@ -533,6 +599,201 @@ export default function CandidatosPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showInfoForm && candidatoSeleccionado && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 overflow-y-auto" onClick={closeInfoForm}>
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl my-4" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">Registrar los documentos aportados</h2>
+              
+              {error && (
+                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
+                <div className="border-b pb-4">
+                  <h3 className="text-lg font-semibold text-[#002A8F] mb-3">Documentos Aportados</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Titulación escolar aportada</label>
+                      <textarea
+                        value={infoFormData.titulacion}
+                        onChange={(e) => setInfoFormData({ ...infoFormData, titulacion: e.target.value })}
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-transparent"
+                        placeholder="Ej: Técnico Medio en Contabilidad"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Muestra de oficios en los que ha trabajado</label>
+                      <textarea
+                        value={infoFormData.oficios}
+                        onChange={(e) => setInfoFormData({ ...infoFormData, oficios: e.target.value })}
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-transparent"
+                        placeholder="Ej: Cocinero, Camarero, Mantenimiento"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Idiomas que domina</label>
+                      <textarea
+                        value={infoFormData.idiomas}
+                        onChange={(e) => setInfoFormData({ ...infoFormData, idiomas: e.target.value })}
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-transparent"
+                        placeholder="Ej: Español, Inglés básico"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Nivel que tiene</label>
+                      <select
+                        value={infoFormData.nivel}
+                        onChange={(e) => setInfoFormData({ ...infoFormData, nivel: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-transparent"
+                      >
+                        <option value="">Seleccione nivel</option>
+                        <option value="basico">Básico</option>
+                        <option value="medio">Medio</option>
+                        <option value="avanzado">Avanzado</option>
+                        <option value="nativo">Nativo</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Lugar donde lo adquirió</label>
+                      <input
+                        type="text"
+                        value={infoFormData.lugar}
+                        onChange={(e) => setInfoFormData({ ...infoFormData, lugar: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-transparent"
+                        placeholder="Ej: Universidad de La Habana"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Cursos que ha realizado</label>
+                      <textarea
+                        value={infoFormData.cursos}
+                        onChange={(e) => setInfoFormData({ ...infoFormData, cursos: e.target.value })}
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-transparent"
+                        placeholder="Ej: Curso de Inglés, Curso de Cocina"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Documentos que le faltaron aportar</label>
+                      <textarea
+                        value={infoFormData.faltantes}
+                        onChange={(e) => setInfoFormData({ ...infoFormData, faltantes: e.target.value })}
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-transparent"
+                        placeholder="Ej: Certificate de trabajo, Curriculum"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Licencia de conducción</label>
+                      <select
+                        value={infoFormData.licencia}
+                        onChange={(e) => setInfoFormData({ ...infoFormData, licencia: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-transparent"
+                      >
+                        <option value="">Seleccione</option>
+                        <option value="ninguna">Ninguna</option>
+                        <option value="tipo B">Tipo B</option>
+                        <option value="tipo C">Tipo C</option>
+                        <option value="tipo D">Tipo D</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-b pb-4">
+                  <h3 className="text-lg font-semibold text-[#002A8F] mb-3">Resultados de la Evaluación</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Resultado de la evaluación comunitaria</label>
+                      <select
+                        value={infoFormData.comunitaria}
+                        onChange={(e) => setInfoFormData({ ...infoFormData, comunitaria: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-transparent"
+                      >
+                        <option value="">Seleccione</option>
+                        <option value="aprobado">Aprobado</option>
+                        <option value="rechazado">Rechazado</option>
+                        <option value="pendiente">Pendiente</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Resultado de la averiguación familiar</label>
+                      <select
+                        value={infoFormData.familiar}
+                        onChange={(e) => setInfoFormData({ ...infoFormData, familiar: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-transparent"
+                      >
+                        <option value="">Seleccione</option>
+                        <option value="aprobado">Aprobado</option>
+                        <option value="rechazado">Rechazado</option>
+                        <option value="pendiente">Pendiente</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Resultado final</label>
+                      <select
+                        value={infoFormData.resultado}
+                        onChange={(e) => setInfoFormData({ ...infoFormData, resultado: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-transparent"
+                      >
+                        <option value="">Seleccione</option>
+                        <option value="aprobado">Aprobado</option>
+                        <option value="rechazado">Rechazado</option>
+                        <option value="pendiente">Pendiente</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-[#002A8F] mb-3">Desempeño en la entrevista</h3>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Observaciones del reclutador</label>
+                    <textarea
+                      value={infoFormData.desempeno}
+                      onChange={(e) => setInfoFormData({ ...infoFormData, desempeno: e.target.value })}
+                      rows={4}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-transparent"
+                      placeholder="Escriba sus observaciones sobre el desempeño del candidato en la entrevista..."
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4 mt-4 border-t">
+                <button
+                  type="button"
+                  onClick={closeInfoForm}
+                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => guardarInfoYCambiarEstado(false)}
+                  disabled={savingInfo || infoFormData.resultado === ""}
+                  className="flex-1 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50 font-medium"
+                >
+                  {savingInfo ? "Guardando..." : "Rechazar"}
+                </button>
+                <button
+                  onClick={() => guardarInfoYCambiarEstado(true)}
+                  disabled={savingInfo || infoFormData.resultado === ""}
+                  className="flex-1 px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50 font-medium"
+                >
+                  {savingInfo ? "Guardando..." : "Aprobar"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

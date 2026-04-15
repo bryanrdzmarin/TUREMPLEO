@@ -45,7 +45,7 @@ export default function Header() {
           <button 
             onClick={() => {
               setMenuOpen(false);
-              window.location.href = "/?t=" + Date.now() + "#plazas";
+              window.location.href = "/#plazas";
             }}
             className="px-3 py-2 text-base font-medium hover:text-[#60A5FA] transition-all duration-300 relative group text-left"
           >

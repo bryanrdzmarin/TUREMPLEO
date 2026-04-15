@@ -34,7 +34,7 @@ export default function Footer() {
               </h4>
               <div className="flex flex-col gap-0.5 opacity-90">
                 <button 
-                  onClick={() => window.location.href = "/?t=" + Date.now() + "#plazas"}
+                  onClick={() => window.location.href = "/#plazas"}
                   className="text-left hover:text-[#60A5FA] transition-colors duration-200"
                 >
                    Plazas

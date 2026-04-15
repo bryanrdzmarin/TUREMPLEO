@@ -71,6 +71,7 @@ interface FormErrors {
   especialidad?: string;
   experienciaTurismo?: string;
   fuenteProcedencia?: string;
+  otraFuente?: string;
 }
 
 function SolicitarForm() {
@@ -86,6 +87,7 @@ function SolicitarForm() {
   const [token, setToken] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const [haTrabajadoTurismoChecked, setHaTrabajadoTurismoChecked] = useState(false);
+  const [otraFuenteSelected, setOtraFuenteSelected] = useState(false);
   const [plazaSeleccionada, setPlazaSeleccionada] = useState<Plaza | null>(null);
   const [requisitosData, setRequisitosData] = useState<{ tieneFormato: boolean; lista: string[]; opcionesMultiple: { texto: string; opciones: string[] }[] }>({ tieneFormato: false, lista: [], opcionesMultiple: [] });
   const [requisitosCumplidos, setRequisitosCumplidos] = useState<string[]>([]);
@@ -168,13 +170,21 @@ function SolicitarForm() {
   };
 
   const calcularEdad = (fechaNacimiento: string): number => {
+    const [anio, mes, dia] = fechaNacimiento.split('-').map(Number);
     const hoy = new Date();
-    const fechaNac = new Date(fechaNacimiento);
-    let edad = hoy.getFullYear() - fechaNac.getFullYear();
-    const mesDiff = hoy.getMonth() - fechaNac.getMonth();
-    if (mesDiff < 0 || (mesDiff === 0 && hoy.getDate() < fechaNac.getDate())) {
+    
+    let edad = hoy.getFullYear() - anio;
+    
+    // Verificar si el cumpleaños ya pasó este año
+    // Los meses en el input son 1-12, pero getMonth() retorna 0-11
+    const mesCumple = mes;
+    const mesActual = hoy.getMonth() + 1;
+    const diaActual = hoy.getDate();
+    
+    if (mesCumple > mesActual || (mesCumple === mesActual && dia > diaActual)) {
       edad--;
     }
+    
     return edad;
   };
 
@@ -347,6 +357,14 @@ function SolicitarForm() {
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
+    }
+
+    if (otraFuenteSelected) {
+      const otraFuente = formData.get("otraFuente") as string;
+      if (!otraFuente || otraFuente.trim().length === 0) {
+        setErrors({ ...validationErrors, otraFuente: "Debe especificar la otra fuente de procedencia" });
+        return;
+      }
     }
 
     setSubmitting(true);
@@ -1006,14 +1024,23 @@ const requisitosMultipleJson = Object.values(requisitosSeleccionadosMultiple).fi
               </label>
               <div className="mt-2">
                 <label className="flex items-center gap-2">
-                  <input type="checkbox" name="fuenteProcedencia" value="otra" className="w-4 h-4 text-[#002A8F]" />
+                  <input 
+                    type="checkbox" 
+                    name="fuenteProcedencia" 
+                    value="otra" 
+                    className="w-4 h-4 text-[#002A8F]"
+                    onChange={(e) => setOtraFuenteSelected(e.target.checked)}
+                  />
                   <span className="text-sm text-gray-700">Otra (especifique):</span>
                 </label>
                 <input
                   type="text"
                   name="otraFuente"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-[#002A8F] outline-none mt-1"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-[#002A8F] outline-none mt-1 ${!otraFuenteSelected ? 'hidden' : ''} ${errors.otraFuente ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
+                  placeholder="Especifique la fuente de procedencia"
+                  required={otraFuenteSelected}
                 />
+                {errors.otraFuente && otraFuenteSelected && <p className={errorClass}>{errors.otraFuente}</p>}
               </div>
             </div>
             {errors.fuenteProcedencia && <p className={errorClass}>{errors.fuenteProcedencia}</p>}

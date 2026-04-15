@@ -32,7 +32,8 @@ model Candidato {
   creadoEn         DateTime           @default(now())
 
   solicitudes      Solicitud[]
- 
+  informacionCan   InformacionCan?
+  
 }
 
 
@@ -123,6 +124,30 @@ model Cita {
   creadoEn        DateTime @default(now())
 
   solicitud       Solicitud @relation(fields: [solicitudId], references: [id])
+}
+
+
+model InformacionCan {
+  id          Int       @id @default(autoincrement())
+  candidatoId Int       @unique
+  candidato   Candidato @relation(fields: [candidatoId], references: [id])
+  
+  titulacion   String?
+  oficios      String?
+  idiomas      String?
+  idioma       String?
+  nivel        String?
+  lugar        String?
+  cursos       String?
+  faltantes    String?
+  licencia     String?
+  comunitaria  String?
+  familiar     String?
+  resultado    String?
+  desempeno    String?
+  
+  creadoEn      DateTime  @default(now())
+  actualizadoEn DateTime  @updatedAt
 }
 
 
