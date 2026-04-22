@@ -89,6 +89,21 @@ export async function DELETE(request: NextRequest): Promise<Response> {
       );
     }
 
+    const solicitudesCount = await prisma.solicitud.count({
+      where: { plazaId: parseInt(id) }
+    });
+
+    if (solicitudesCount > 0) {
+      return new Response(
+        JSON.stringify({ 
+          error: "No se puede eliminar esta plaza porque tiene solicitudes asociadas",
+          tieneSolicitudes: true,
+          cantidad: solicitudesCount
+        }),
+        { status: 400 }
+      );
+    }
+
     await prisma.plaza.delete({
       where: { id: parseInt(id) }
     });

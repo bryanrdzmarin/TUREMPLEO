@@ -9,6 +9,10 @@ interface SolicitudInput {
   email: string;
   plazaId: number;
   plazaNombre: string;
+  requisitosCumplidos?: string;
+}
+
+interface DatosPersonales {
   fechaNacimiento?: string;
   edad?: number;
   sexo?: string;
@@ -38,12 +42,11 @@ interface SolicitudInput {
   fuenteProcedencia?: string;
   otraFuente?: string;
   trayectoriaPolitica?: string;
-  requisitosCumplidos?: string;
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
   try {
-    const data = await request.json() as SolicitudInput;
+    const data = await request.json() as SolicitudInput & DatosPersonales;
 
     if (!data.ci || !data.nombre || !data.plazaId || !data.plazaNombre) {
       return new Response(
@@ -63,6 +66,73 @@ export async function POST(request: NextRequest): Promise<Response> {
           nombre: data.nombre,
           telefono: data.telefono || null,
           email: data.email || null,
+          fechaNacimiento: data.fechaNacimiento || null,
+          edad: data.edad || null,
+          sexo: data.sexo || null,
+          colorPiel: data.colorPiel || null,
+          colorPelo: data.colorPelo || null,
+          peso: data.peso || null,
+          estatura: data.estatura || null,
+          estadoCivil: data.estadoCivil || null,
+          municipioNacimiento: data.municipioNacimiento || null,
+          nombrePadre: data.nombrePadre || null,
+          nombreMadre: data.nombreMadre || null,
+          direccion: data.direccion || null,
+          reparto: data.reparto || null,
+          municipio: data.municipio || null,
+          provincia: data.provincia || null,
+          telefonoParticular: data.telefonoParticular || null,
+          telefonoLaboral: data.telefonoLaboral || null,
+          telefonoFamiliar: data.telefonoFamiliar || null,
+          nivelEscolar: data.nivelEscolar || null,
+          especialidad: data.especialidad || null,
+          profesiones: data.profesiones || null,
+          idiomas: data.idiomas || null,
+          cursos: data.cursos || null,
+          licenciaConduccion: data.licenciaConduccion || null,
+          haTrabajadoTurismo: data.haTrabajadoTurismo || false,
+          experienciaTurismo: data.experienciaTurismo || null,
+          fuenteProcedencia: data.fuenteProcedencia || null,
+          otraFuente: data.otraFuente || null,
+          trayectoriaPolitica: data.trayectoriaPolitica || null,
+        }
+      });
+    } else {
+      await prisma.candidato.update({
+        where: { id: candidato.id },
+        data: {
+          nombre: data.nombre,
+          telefono: data.telefono || null,
+          email: data.email || null,
+          fechaNacimiento: data.fechaNacimiento || null,
+          edad: data.edad || null,
+          sexo: data.sexo || null,
+          colorPiel: data.colorPiel || null,
+          colorPelo: data.colorPelo || null,
+          peso: data.peso || null,
+          estatura: data.estatura || null,
+          estadoCivil: data.estadoCivil || null,
+          municipioNacimiento: data.municipioNacimiento || null,
+          nombrePadre: data.nombrePadre || null,
+          nombreMadre: data.nombreMadre || null,
+          direccion: data.direccion || null,
+          reparto: data.reparto || null,
+          municipio: data.municipio || null,
+          provincia: data.provincia || null,
+          telefonoParticular: data.telefonoParticular || null,
+          telefonoLaboral: data.telefonoLaboral || null,
+          telefonoFamiliar: data.telefonoFamiliar || null,
+          nivelEscolar: data.nivelEscolar || null,
+          especialidad: data.especialidad || null,
+          profesiones: data.profesiones || null,
+          idiomas: data.idiomas || null,
+          cursos: data.cursos || null,
+          licenciaConduccion: data.licenciaConduccion || null,
+          haTrabajadoTurismo: data.haTrabajadoTurismo || false,
+          experienciaTurismo: data.experienciaTurismo || null,
+          fuenteProcedencia: data.fuenteProcedencia || null,
+          otraFuente: data.otraFuente || null,
+          trayectoriaPolitica: data.trayectoriaPolitica || null,
         }
       });
     }
@@ -113,35 +183,6 @@ export async function POST(request: NextRequest): Promise<Response> {
         plazaNombre: data.plazaNombre,
         estado: "pendiente",
         pin: pin,
-        fechaNacimiento: data.fechaNacimiento || null,
-        edad: data.edad || null,
-        sexo: data.sexo || null,
-        colorPiel: data.colorPiel || null,
-        colorPelo: data.colorPelo || null,
-        peso: data.peso || null,
-        estatura: data.estatura || null,
-        estadoCivil: data.estadoCivil || null,
-        municipioNacimiento: data.municipioNacimiento || null,
-        nombrePadre: data.nombrePadre || null,
-        nombreMadre: data.nombreMadre || null,
-        direccion: data.direccion || null,
-        reparto: data.reparto || null,
-        municipio: data.municipio || null,
-        provincia: data.provincia || null,
-        telefonoParticular: data.telefonoParticular || null,
-        telefonoLaboral: data.telefonoLaboral || null,
-        telefonoFamiliar: data.telefonoFamiliar || null,
-        nivelEscolar: data.nivelEscolar || null,
-        especialidad: data.especialidad || null,
-        profesiones: data.profesiones || null,
-        idiomas: data.idiomas || null,
-        cursos: data.cursos || null,
-        licenciaConduccion: data.licenciaConduccion || null,
-        haTrabajadoTurismo: data.haTrabajadoTurismo || false,
-        experienciaTurismo: data.experienciaTurismo || null,
-        fuenteProcedencia: data.fuenteProcedencia || null,
-        otraFuente: data.otraFuente || null,
-        trayectoriaPolitica: data.trayectoriaPolitica || null,
         requisitosCumplidos: data.requisitosCumplidos || null,
       }
     });

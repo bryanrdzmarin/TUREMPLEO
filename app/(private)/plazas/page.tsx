@@ -18,6 +18,7 @@ export default function PlazasPage() {
   const [form, setForm] = useState({ nombre: "", requisitos: "", funciones: "" });
   const [showInactive, setShowInactive] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const [errorDelete, setErrorDelete] = useState<{message: string, plaza: Plaza} | null>(null);
 
   useEffect(() => {
     fetchPlazas();
@@ -62,7 +63,17 @@ export default function PlazasPage() {
 
   const handleDelete = async (id: number) => {
     try {
-      await fetch(`/api/plazas?id=${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/plazas?id=${id}`, { method: "DELETE" });
+      const data = await res.json();
+      
+      if (!res.ok && data.tieneSolicitudes) {
+        const plaza = plazas.find(p => p.id === id);
+        if (plaza) {
+          setErrorDelete({ message: data.error, plaza });
+        }
+        return;
+      }
+      
       setDeleteConfirm(null);
       fetchPlazas();
     } catch (error) {
@@ -269,6 +280,39 @@ export default function PlazasPage() {
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
               >
                 Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {errorDelete && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-2">No se puede eliminar</h3>
+            <p className="text-gray-600 mb-2">{errorDelete.message}</p>
+            <p className="text-sm text-gray-500 mb-4">Esta plaza tiene solicitudes asociadas. ¿Desea inactivarla para que no se puedan crear más solicitudes?</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setErrorDelete(null)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  await fetch("/api/plazas", {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ ...errorDelete.plaza, activo: false })
+                  });
+                  setErrorDelete(null);
+                  setDeleteConfirm(null);
+                  fetchPlazas();
+                }}
+                className="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
+              >
+                Inactivar plaza
               </button>
             </div>
           </div>

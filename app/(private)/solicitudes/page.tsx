@@ -8,24 +8,6 @@ interface Candidato {
   nombre: string;
   telefono: string | null;
   email: string | null;
-}
-
-interface Plaza {
-  id: number;
-  nombre: string;
-  requisitos: string;
-}
-
-interface Solicitud {
-  id: number;
-  candidatoId: number;
-  plazaId: number;
-  plazaNombre: string;
-  estado: string;
-  creadoEn: string;
-  candidato: Candidato;
-  plaza: Plaza | null;
-  requisitosCumplidos: string | null;
   fechaNacimiento: string | null;
   edad: number | null;
   sexo: string | null;
@@ -55,6 +37,24 @@ interface Solicitud {
   fuenteProcedencia: string | null;
   otraFuente: string | null;
   trayectoriaPolitica: string | null;
+}
+
+interface Plaza {
+  id: number;
+  nombre: string;
+  requisitos: string;
+}
+
+interface Solicitud {
+  id: number;
+  candidatoId: number;
+  plazaId: number;
+  plazaNombre: string;
+  estado: string;
+  creadoEn: string;
+  candidato: Candidato;
+  plaza: Plaza | null;
+  requisitosCumplidos: string | null;
   motivoDenegacion: string | null;
 }
 
@@ -276,82 +276,82 @@ export default function SolicitudesPage() {
                     <div><span className="text-gray-500">CI:</span> <span className="font-medium">{detalleSolicitud.candidato.ci}</span></div>
                     <div><span className="text-gray-500">Teléfono:</span> <span className="font-medium">{detalleSolicitud.candidato.telefono || "-"}</span></div>
                     <div><span className="text-gray-500">Email:</span> <span className="font-medium break-words">{detalleSolicitud.candidato.email || "-"}</span></div>
-                    <div><span className="text-gray-500">Fecha Nac.:</span> <span className="font-medium">{detalleSolicitud.fechaNacimiento || "-"}</span></div>
-                    <div><span className="text-gray-500">Edad:</span> <span className="font-medium">{detalleSolicitud.edad || "-"}</span></div>
-                    <div><span className="text-gray-500">Sexo:</span> <span className="font-medium">{detalleSolicitud.sexo || "-"}</span></div>
-                    <div><span className="text-gray-500">Color Piel:</span> <span className="font-medium">{detalleSolicitud.colorPiel || "-"}</span></div>
-                    <div><span className="text-gray-500">Color Pelo:</span> <span className="font-medium">{detalleSolicitud.colorPelo || "-"}</span></div>
-                    <div><span className="text-gray-500">Peso (kg):</span> <span className="font-medium">{detalleSolicitud.peso || "-"}</span></div>
-                    <div><span className="text-gray-500">Estatura (cm):</span> <span className="font-medium">{detalleSolicitud.estatura || "-"}</span></div>
-                    <div><span className="text-gray-500">Estado Civil:</span> <span className="font-medium">{detalleSolicitud.estadoCivil || "-"}</span></div>
-                    <div className="md:col-span-2"><span className="text-gray-500">Municipio Nac.:</span> <span className="font-medium">{detalleSolicitud.municipioNacimiento || "-"}</span></div>
+                    <div><span className="text-gray-500">Fecha Nac.:</span> <span className="font-medium">{detalleSolicitud.candidato.fechaNacimiento || "-"}</span></div>
+                    <div><span className="text-gray-500">Edad:</span> <span className="font-medium">{detalleSolicitud.candidato.edad || "-"}</span></div>
+                    <div><span className="text-gray-500">Sexo:</span> <span className="font-medium">{detalleSolicitud.candidato.sexo || "-"}</span></div>
+                    <div><span className="text-gray-500">Color Piel:</span> <span className="font-medium">{detalleSolicitud.candidato.colorPiel || "-"}</span></div>
+                    <div><span className="text-gray-500">Color Pelo:</span> <span className="font-medium">{detalleSolicitud.candidato.colorPelo || "-"}</span></div>
+                    <div><span className="text-gray-500">Peso (kg):</span> <span className="font-medium">{detalleSolicitud.candidato.peso || "-"}</span></div>
+                    <div><span className="text-gray-500">Estatura (cm):</span> <span className="font-medium">{detalleSolicitud.candidato.estatura || "-"}</span></div>
+                    <div><span className="text-gray-500">Estado Civil:</span> <span className="font-medium">{detalleSolicitud.candidato.estadoCivil || "-"}</span></div>
+                    <div className="md:col-span-2"><span className="text-gray-500">Municipio Nac.:</span> <span className="font-medium">{detalleSolicitud.candidato.municipioNacimiento || "-"}</span></div>
                   </div>
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <h3 className="font-semibold text-[#002A8F] mb-2">Familia</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <div><span className="text-gray-500">Nombre Padre:</span> <span className="font-medium">{detalleSolicitud.nombrePadre || "-"}</span></div>
-                    <div><span className="text-gray-500">Nombre Madre:</span> <span className="font-medium">{detalleSolicitud.nombreMadre || "-"}</span></div>
+                    <div><span className="text-gray-500">Nombre Padre:</span> <span className="font-medium">{detalleSolicitud.candidato.nombrePadre || "-"}</span></div>
+                    <div><span className="text-gray-500">Nombre Madre:</span> <span className="font-medium">{detalleSolicitud.candidato.nombreMadre || "-"}</span></div>
                   </div>
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <h3 className="font-semibold text-[#002A8F] mb-2">Dirección</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <div className="md:col-span-2"><span className="text-gray-500">Dirección:</span> <span className="font-medium">{detalleSolicitud.direccion || "-"}</span></div>
-                    <div><span className="text-gray-500">Reparto:</span> <span className="font-medium">{detalleSolicitud.reparto || "-"}</span></div>
-                    <div><span className="text-gray-500">Municipio:</span> <span className="font-medium">{detalleSolicitud.municipio || "-"}</span></div>
-                    <div><span className="text-gray-500">Provincia:</span> <span className="font-medium">{detalleSolicitud.provincia || "-"}</span></div>
+                    <div className="md:col-span-2"><span className="text-gray-500">Dirección:</span> <span className="font-medium">{detalleSolicitud.candidato.direccion || "-"}</span></div>
+                    <div><span className="text-gray-500">Reparto:</span> <span className="font-medium">{detalleSolicitud.candidato.reparto || "-"}</span></div>
+                    <div><span className="text-gray-500">Municipio:</span> <span className="font-medium">{detalleSolicitud.candidato.municipio || "-"}</span></div>
+                    <div><span className="text-gray-500">Provincia:</span> <span className="font-medium">{detalleSolicitud.candidato.provincia || "-"}</span></div>
                   </div>
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <h3 className="font-semibold text-[#002A8F] mb-2">Teléfonos</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                    <div><span className="text-gray-500">Particular:</span> <span className="font-medium">{detalleSolicitud.telefonoParticular || "-"}</span></div>
-                    <div><span className="text-gray-500">Laboral:</span> <span className="font-medium">{detalleSolicitud.telefonoLaboral || "-"}</span></div>
-                    <div><span className="text-gray-500">Familiar:</span> <span className="font-medium">{detalleSolicitud.telefonoFamiliar || "-"}</span></div>
+                    <div><span className="text-gray-500">Particular:</span> <span className="font-medium">{detalleSolicitud.candidato.telefonoParticular || "-"}</span></div>
+                    <div><span className="text-gray-500">Laboral:</span> <span className="font-medium">{detalleSolicitud.candidato.telefonoLaboral || "-"}</span></div>
+                    <div><span className="text-gray-500">Familiar:</span> <span className="font-medium">{detalleSolicitud.candidato.telefonoFamiliar || "-"}</span></div>
                   </div>
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <h3 className="font-semibold text-[#002A8F] mb-2">Nivel Escolar</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <div><span className="text-gray-500">Nivel:</span> <span className="font-medium">{detalleSolicitud.nivelEscolar || "-"}</span></div>
-                    <div><span className="text-gray-500">Especialidad:</span> <span className="font-medium">{detalleSolicitud.especialidad || "-"}</span></div>
+                    <div><span className="text-gray-500">Nivel:</span> <span className="font-medium">{detalleSolicitud.candidato.nivelEscolar || "-"}</span></div>
+                    <div><span className="text-gray-500">Especialidad:</span> <span className="font-medium">{detalleSolicitud.candidato.especialidad || "-"}</span></div>
                   </div>
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <h3 className="font-semibold text-[#002A8F] mb-2">Experiencia Laboral</h3>
                   <div className="space-y-1">
-                    <div><span className="text-gray-500">Profesiones/Oficios:</span> <span className="font-medium">{detalleSolicitud.profesiones || "-"}</span></div>
-                    <div><span className="text-gray-500">Idiomas:</span> <span className="font-medium">{detalleSolicitud.idiomas || "-"}</span></div>
-                    <div><span className="text-gray-500">Cursos:</span> <span className="font-medium">{detalleSolicitud.cursos || "-"}</span></div>
-                    <div><span className="text-gray-500">Licencia:</span> <span className="font-medium">{detalleSolicitud.licenciaConduccion || "-"}</span></div>
+                    <div><span className="text-gray-500">Profesiones/Oficios:</span> <span className="font-medium">{detalleSolicitud.candidato.profesiones || "-"}</span></div>
+                    <div><span className="text-gray-500">Idiomas:</span> <span className="font-medium">{detalleSolicitud.candidato.idiomas || "-"}</span></div>
+                    <div><span className="text-gray-500">Cursos:</span> <span className="font-medium">{detalleSolicitud.candidato.cursos || "-"}</span></div>
+                    <div><span className="text-gray-500">Licencia:</span> <span className="font-medium">{detalleSolicitud.candidato.licenciaConduccion || "-"}</span></div>
                   </div>
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <h3 className="font-semibold text-[#002A8F] mb-2">Experiencia en Turismo</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <div><span className="text-gray-500">Ha trabajado:</span> <span className="font-medium">{detalleSolicitud.haTrabajadoTurismo ? "Sí" : "No"}</span></div>
-                    <div><span className="text-gray-500">Centros:</span> <span className="font-medium">{detalleSolicitud.experienciaTurismo || "-"}</span></div>
+                    <div><span className="text-gray-500">Ha trabajado:</span> <span className="font-medium">{detalleSolicitud.candidato.haTrabajadoTurismo ? "Sí" : "No"}</span></div>
+                    <div><span className="text-gray-500">Centros:</span> <span className="font-medium">{detalleSolicitud.candidato.experienciaTurismo || "-"}</span></div>
                   </div>
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <h3 className="font-semibold text-[#002A8F] mb-2">Fuente de Procedencia</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <div className="md:col-span-2"><span className="text-gray-500">Fuente:</span> <span className="font-medium">{detalleSolicitud.fuenteProcedencia || "-"}</span></div>
-                    {detalleSolicitud.otraFuente && <div><span className="text-gray-500">Otra:</span> <span className="font-medium">{detalleSolicitud.otraFuente}</span></div>}
+                    <div className="md:col-span-2"><span className="text-gray-500">Fuente:</span> <span className="font-medium">{detalleSolicitud.candidato.fuenteProcedencia || "-"}</span></div>
+                    {detalleSolicitud.candidato.otraFuente && <div><span className="text-gray-500">Otra:</span> <span className="font-medium">{detalleSolicitud.candidato.otraFuente}</span></div>}
                   </div>
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <h3 className="font-semibold text-[#002A8F] mb-2">Trayectoria Política</h3>
-                  <div><span className="text-gray-500">Detalles:</span> <span className="font-medium">{detalleSolicitud.trayectoriaPolitica || "-"}</span></div>
+                  <div><span className="text-gray-500">Detalles:</span> <span className="font-medium">{detalleSolicitud.candidato.trayectoriaPolitica || "-"}</span></div>
                 </div>
 
                 {detalleSolicitud.plaza && (

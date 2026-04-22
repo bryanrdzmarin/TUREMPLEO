@@ -31,9 +31,44 @@ model Candidato {
   email            String?
   creadoEn         DateTime           @default(now())
 
+  fechaNacimiento    String?
+  edad               Int?
+  sexo               String?
+  colorPiel          String?
+  colorPelo          String?
+  peso               Float?
+  estatura           Float?
+  estadoCivil        String?
+  municipioNacimiento String?
+  nombrePadre        String?
+  nombreMadre        String?
+
+  direccion          String?
+  reparto            String?
+  municipio          String?
+  provincia          String?
+  telefonoParticular String?
+  telefonoLaboral    String?
+  telefonoFamiliar   String?
+
+  nivelEscolar       String?
+  especialidad       String?
+
+  profesiones        String?
+  idiomas            String?
+  cursos             String?
+  licenciaConduccion String?
+
+  haTrabajadoTurismo  Boolean?
+  experienciaTurismo  String?
+
+  fuenteProcedencia  String?
+  otraFuente         String?
+
+trayectoriaPolitica String?
+
   solicitudes      Solicitud[]
-  informacionCan   InformacionCan?
-  
+   
 }
 
 
@@ -68,49 +103,15 @@ model Solicitud {
 
   @@unique([candidatoId, plazaId])
 
-  fechaNacimiento    String?
-  edad               Int?
-  sexo               String?
-  colorPiel          String?
-  colorPelo          String?
-  peso               Float?
-  estatura           Float?
-  estadoCivil        String?
-  municipioNacimiento String?
-  nombrePadre        String?
-  nombreMadre        String?
-
-  direccion          String?
-  reparto            String?
-  municipio          String?
-  provincia          String?
-  telefonoParticular String?
-  telefonoLaboral    String?
-  telefonoFamiliar  String?
-
-  nivelEscolar       String?
-  especialidad       String?
-
-  profesiones        String?
-  idiomas            String?
-  cursos             String?
-  licenciaConduccion String?
-
-  haTrabajadoTurismo  Boolean?
-  experienciaTurismo  String?
-
-  fuenteProcedencia   String?
-  otraFuente          String?
-
-  trayectoriaPolitica    String?
   requisitosCumplidos String?
   motivoDenegacion    String?
-  pin                String?
-  citado             Boolean  @default(false)
-  entrevistaPasada   Boolean?
-  fechaEvaluacion   DateTime?
+  pin                 String?
+  citado              Boolean  @default(false)
+  entrevistaPasada    Boolean?
+  fechaEvaluacion     DateTime?
 
   cita               Cita?
+  informacionCan    InformacionCan?
 }
 
 
@@ -129,24 +130,23 @@ model Cita {
 
 model InformacionCan {
   id          Int       @id @default(autoincrement())
-  candidatoId Int       @unique
-  candidato   Candidato @relation(fields: [candidatoId], references: [id])
+  solicitudId Int       @unique
+  solicitud   Solicitud @relation(fields: [solicitudId], references: [id])
   
-  titulacion   String?
-  oficios      String?
-  idiomas      String?
-  idioma       String?
-  nivel        String?
-  lugar        String?
-  cursos       String?
-  faltantes    String?
-  licencia     String?
-  comunitaria  String?
-  familiar     String?
-  resultado    String?
-  desempeno    String?
+  titulacion  String?
+  oficios     String?
+  idiomas     String?
+  nivel       String?
+  lugar       String?
+  cursos      String?
+  faltantes   String?
+  licencia    String?
+  comunitaria String?
+  intrabajo  String?
+  resultado   String?
+  desempeno   String?
   
-  creadoEn      DateTime  @default(now())
+  creadoEn       DateTime  @default(now())
   actualizadoEn DateTime  @updatedAt
 }
 

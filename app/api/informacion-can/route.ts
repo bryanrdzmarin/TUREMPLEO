@@ -2,57 +2,39 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 interface InformacionCanInput {
-  candidatoId: number;
+  solicitudId: number;
   titulacion?: string;
   oficios?: string;
   idiomas?: string;
-  idioma?: string;
   nivel?: string;
   lugar?: string;
   cursos?: string;
   faltantes?: string;
   licencia?: string;
   comunitaria?: string;
-  familiar?: string;
-  resultado?: string;
+  intrabajo?: string;
   desempeno?: string;
 }
 
 export async function GET(request: NextRequest): Promise<Response> {
   try {
     const { searchParams } = new URL(request.url);
-    const candidatoId = searchParams.get("candidatoId");
-    const ci = searchParams.get("ci");
+    const solicitudId = searchParams.get("solicitudId");
 
-    let whereCondition: any = {};
-
-    if (candidatoId) {
-      whereCondition = { candidatoId: parseInt(candidatoId) };
-    } else if (ci) {
-      const candidato = await prisma.candidato.findUnique({
-        where: { ci: ci }
-      });
-      if (!candidato) {
-        return new Response(
-          JSON.stringify({ error: "No se encontró candidato con este CI" }),
-          { status: 404 }
-        );
-      }
-      whereCondition = { candidatoId: candidato.id };
-    } else {
+    if (!solicitudId) {
       return new Response(
-        JSON.stringify({ error: "Se requiere candidatoId o ci" }),
+        JSON.stringify({ error: "Se requiere solicitudId" }),
         { status: 400 }
       );
     }
 
     const informacion = await prisma.informacionCan.findUnique({
-      where: whereCondition
+      where: { solicitudId: parseInt(solicitudId) }
     });
 
     if (!informacion) {
       return new Response(
-        JSON.stringify({ error: "No se encontró información para este candidato" }),
+        JSON.stringify({ error: "No se encontró información para esta solicitud" }),
         { status: 404 }
       );
     }
@@ -61,7 +43,7 @@ export async function GET(request: NextRequest): Promise<Response> {
   } catch (error) {
     console.error("Error fetching informacionCan:", error);
     return new Response(
-      JSON.stringify({ error: "Error al obtener información del candidato" }),
+      JSON.stringify({ error: "Error al obtener información" }),
       { status: 500 }
     );
   }
@@ -71,39 +53,37 @@ export async function POST(request: NextRequest): Promise<Response> {
   try {
     const data = await request.json() as InformacionCanInput;
 
-    if (!data.candidatoId) {
+    if (!data.solicitudId) {
       return new Response(
-        JSON.stringify({ error: "candidatoId es obligatorio" }),
+        JSON.stringify({ error: "solicitudId es obligatorio" }),
         { status: 400 }
       );
     }
 
     const existe = await prisma.informacionCan.findUnique({
-      where: { candidatoId: data.candidatoId }
+      where: { solicitudId: data.solicitudId }
     });
 
     if (existe) {
       return new Response(
-        JSON.stringify({ error: "Ya existe información para este candidato. Use PUT para actualizar." }),
+        JSON.stringify({ error: "Ya existe información para esta solicitud. Use PUT para actualizar." }),
         { status: 400 }
       );
     }
 
     const informacion = await prisma.informacionCan.create({
       data: {
-        candidatoId: data.candidatoId,
+        solicitudId: data.solicitudId,
         titulacion: data.titulacion || null,
         oficios: data.oficios || null,
         idiomas: data.idiomas || null,
-        idioma: data.idioma || null,
         nivel: data.nivel || null,
         lugar: data.lugar || null,
         cursos: data.cursos || null,
         faltantes: data.faltantes || null,
         licencia: data.licencia || null,
         comunitaria: data.comunitaria || null,
-        familiar: data.familiar || null,
-        resultado: data.resultado || null,
+        intrabajo: data.intrabajo || null,
         desempeno: data.desempeno || null,
       }
     });
@@ -112,7 +92,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   } catch (error) {
     console.error("Error creating informacionCan:", error);
     return new Response(
-      JSON.stringify({ error: "Error al crear información del candidato" }),
+      JSON.stringify({ error: "Error al crear información" }),
       { status: 500 }
     );
   }
@@ -138,15 +118,13 @@ export async function PUT(request: NextRequest): Promise<Response> {
         titulacion: data.titulacion !== undefined ? data.titulacion : undefined,
         oficios: data.oficios !== undefined ? data.oficios : undefined,
         idiomas: data.idiomas !== undefined ? data.idiomas : undefined,
-        idioma: data.idioma !== undefined ? data.idioma : undefined,
         nivel: data.nivel !== undefined ? data.nivel : undefined,
         lugar: data.lugar !== undefined ? data.lugar : undefined,
         cursos: data.cursos !== undefined ? data.cursos : undefined,
         faltantes: data.faltantes !== undefined ? data.faltantes : undefined,
         licencia: data.licencia !== undefined ? data.licencia : undefined,
         comunitaria: data.comunitaria !== undefined ? data.comunitaria : undefined,
-        familiar: data.familiar !== undefined ? data.familiar : undefined,
-        resultado: data.resultado !== undefined ? data.resultado : undefined,
+        intrabajo: data.intrabajo !== undefined ? data.intrabajo : undefined,
         desempeno: data.desempeno !== undefined ? data.desempeno : undefined,
       }
     });
@@ -155,7 +133,7 @@ export async function PUT(request: NextRequest): Promise<Response> {
   } catch (error) {
     console.error("Error updating informacionCan:", error);
     return new Response(
-      JSON.stringify({ error: "Error al actualizar información del candidato" }),
+      JSON.stringify({ error: "Error al actualizar información" }),
       { status: 500 }
     );
   }

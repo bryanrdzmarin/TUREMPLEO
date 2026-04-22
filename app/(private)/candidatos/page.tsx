@@ -58,8 +58,7 @@ export default function CandidatosPage() {
     faltantes: "",
     licencia: "",
     comunitaria: "",
-    familiar: "",
-    resultado: "",
+    intrabajo: "",
     desempeno: ""
   });
   const [savingInfo, setSavingInfo] = useState(false);
@@ -227,8 +226,7 @@ export default function CandidatosPage() {
       faltantes: "",
       licencia: "",
       comunitaria: "",
-      familiar: "",
-      resultado: "",
+      intrabajo: "",
       desempeno: ""
     });
   };
@@ -247,8 +245,7 @@ export default function CandidatosPage() {
       faltantes: "",
       licencia: "",
       comunitaria: "",
-      familiar: "",
-      resultado: "",
+      intrabajo: "",
       desempeno: ""
     });
   };
@@ -260,7 +257,7 @@ export default function CandidatosPage() {
     setError(null);
 
     try {
-      const resCheck = await fetch(`/api/informacion-can?candidatoId=${candidatoSeleccionado.candidato.ci}`);
+      const resCheck = await fetch(`/api/informacion-can?solicitudId=${candidatoSeleccionado.id}`);
       
       let informacionId: number | null = null;
       
@@ -272,8 +269,7 @@ export default function CandidatosPage() {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            ...infoFormData,
-            candidatoId: candidatoSeleccionado.id
+            ...infoFormData
           })
         });
         
@@ -289,7 +285,7 @@ export default function CandidatosPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...infoFormData,
-            candidatoId: candidatoSeleccionado.id
+            solicitudId: candidatoSeleccionado.id
           })
         });
         
@@ -621,14 +617,18 @@ export default function CandidatosPage() {
                   <h3 className="text-lg font-semibold text-[#002A8F] mb-3">Documentos Aportados</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Titulación escolar aportada</label>
-                      <textarea
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Certificación escolar aportada</label>
+                      <select
                         value={infoFormData.titulacion}
                         onChange={(e) => setInfoFormData({ ...infoFormData, titulacion: e.target.value })}
-                        rows={2}
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-transparent"
-                        placeholder="Ej: Técnico Medio en Contabilidad"
-                      />
+                      >
+                        <option value="">Seleccione</option>
+                        <option value="Secundaria">Secundaria</option>
+                        <option value="Técnico Medio">Técnico Medio</option>
+                        <option value="Preuniversitario">Preuniversitario</option>
+                        <option value="Universitario">Universitario</option>
+                      </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Muestra de oficios en los que ha trabajado</label>
@@ -702,20 +702,27 @@ export default function CandidatosPage() {
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-transparent"
                       >
                         <option value="">Seleccione</option>
-                        <option value="ninguna">Ninguna</option>
-                        <option value="tipo B">Tipo B</option>
-                        <option value="tipo C">Tipo C</option>
-                        <option value="tipo D">Tipo D</option>
+                        <option value="Ninguna">Ninguna</option>
+                        <option value="A">A</option>
+                        <option value="A1">A1</option>
+                        <option value="B">B</option>
+                        <option value="C1">C1</option>
+                        <option value="C">C</option>
+                        <option value="D1">D1</option>
+                        <option value="D">D</option>
+                        <option value="E">E</option>
+                        <option value="F">F</option>
+                        <option value="FE">FE</option>
                       </select>
                     </div>
                   </div>
                 </div>
 
                 <div className="border-b pb-4">
-                  <h3 className="text-lg font-semibold text-[#002A8F] mb-3">Resultados de la Evaluación</h3>
+                  <h3 className="text-lg font-semibold text-[#002A8F] mb-3">Resultados de las investigaciones realizadas</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Resultado de la evaluación comunitaria</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Resultado de la averiguación en la comunidad</label>
                       <select
                         value={infoFormData.comunitaria}
                         onChange={(e) => setInfoFormData({ ...infoFormData, comunitaria: e.target.value })}
@@ -728,23 +735,10 @@ export default function CandidatosPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Resultado de la averiguación familiar</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Resultado de la averiguación en centros de trabajo anteriores</label>
                       <select
-                        value={infoFormData.familiar}
-                        onChange={(e) => setInfoFormData({ ...infoFormData, familiar: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-transparent"
-                      >
-                        <option value="">Seleccione</option>
-                        <option value="aprobado">Aprobado</option>
-                        <option value="rechazado">Rechazado</option>
-                        <option value="pendiente">Pendiente</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Resultado final</label>
-                      <select
-                        value={infoFormData.resultado}
-                        onChange={(e) => setInfoFormData({ ...infoFormData, resultado: e.target.value })}
+                        value={infoFormData.intrabajo}
+                        onChange={(e) => setInfoFormData({ ...infoFormData, intrabajo: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-transparent"
                       >
                         <option value="">Seleccione</option>
@@ -781,14 +775,14 @@ export default function CandidatosPage() {
                 </button>
                 <button
                   onClick={() => guardarInfoYCambiarEstado(false)}
-                  disabled={savingInfo || infoFormData.resultado === ""}
+                  disabled={savingInfo || infoFormData.comunitaria === ""}
                   className="flex-1 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50 font-medium"
                 >
                   {savingInfo ? "Guardando..." : "Rechazar"}
                 </button>
                 <button
                   onClick={() => guardarInfoYCambiarEstado(true)}
-                  disabled={savingInfo || infoFormData.resultado === ""}
+                  disabled={savingInfo || infoFormData.comunitaria === ""}
                   className="flex-1 px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50 font-medium"
                 >
                   {savingInfo ? "Guardando..." : "Aprobar"}

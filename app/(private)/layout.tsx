@@ -8,6 +8,7 @@ const navItems = [
   { href: "/plazas", label: "Plazas" },
   { href: "/solicitudes", label: "Solicitudes" },
   { href: "/candidatos", label: "Candidatos" },
+  { href: "/reserva", label: "Reserva" },
 ];
 
 export default function PrivateLayout({ children }: { children: React.ReactNode }) {
