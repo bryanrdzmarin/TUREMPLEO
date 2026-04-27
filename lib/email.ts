@@ -85,7 +85,9 @@ export async function sendCitaEmail(
       weekday: 'long',
       day: 'numeric',
       month: 'long',
-      year: 'numeric'
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
 
     await resend.emails.send({

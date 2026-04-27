@@ -66,11 +66,13 @@ export default function PlazasPage() {
       const res = await fetch(`/api/plazas?id=${id}`, { method: "DELETE" });
       const data = await res.json();
       
-      if (!res.ok && data.tieneSolicitudes) {
+      if (!res.ok) {
         const plaza = plazas.find(p => p.id === id);
-        if (plaza) {
+        if (data.tieneSolicitudes && plaza) {
           setErrorDelete({ message: data.error, plaza });
+          return;
         }
+        alert(data.error || data.detalles || "Error al eliminar la plaza");
         return;
       }
       
@@ -78,6 +80,7 @@ export default function PlazasPage() {
       fetchPlazas();
     } catch (error) {
       console.error("Error deleting plaza:", error);
+      alert("Error de conexión al eliminar la plaza");
     }
   };
 

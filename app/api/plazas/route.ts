@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 export async function GET(): Promise<Response> {
   try {
     const plazas = await prisma.plaza.findMany({
+      where: { eliminado: false },
       orderBy: { id: "desc" }
     });
     return Response.json(plazas);
@@ -89,30 +90,38 @@ export async function DELETE(request: NextRequest): Promise<Response> {
       );
     }
 
-    const solicitudesCount = await prisma.solicitud.count({
-      where: { plazaId: parseInt(id) }
+    const numericId = parseInt(id);
+
+    const solicitudesActivas = await prisma.solicitud.findMany({
+      where: { 
+        plazaId: numericId, 
+        archivado: false,
+        estado: { in: ["pendiente", "aprobado"] }
+      }
     });
 
-    if (solicitudesCount > 0) {
+    if (solicitudesActivas.length > 0) {
       return new Response(
         JSON.stringify({ 
-          error: "No se puede eliminar esta plaza porque tiene solicitudes asociadas",
+          error: "No se puede eliminar esta plaza porque tiene solicitudes activas",
           tieneSolicitudes: true,
-          cantidad: solicitudesCount
+          cantidad: solicitudesActivas.length,
+          detalles: solicitudesActivas.map(s => ({ id: s.id, estado: s.estado }))
         }),
         { status: 400 }
       );
     }
 
-    await prisma.plaza.delete({
-      where: { id: parseInt(id) }
+    await prisma.plaza.update({
+      where: { id: numericId },
+      data: { eliminado: true }
     });
 
     return Response.json({ success: true });
   } catch (error) {
     console.error("Error deleting plaza:", error);
     return new Response(
-      JSON.stringify({ error: "Error al eliminar plaza" }),
+      JSON.stringify({ error: "Error al eliminar la plaza", detalles: String(error) }),
       { status: 500 }
     );
   }

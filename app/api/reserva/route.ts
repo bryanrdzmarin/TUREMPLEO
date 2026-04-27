@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendCitaEmail } from "@/lib/email";
 
 export async function GET(request: NextRequest): Promise<Response> {
   try {
@@ -14,12 +15,14 @@ export async function GET(request: NextRequest): Promise<Response> {
     const cursos = searchParams.get("cursos");
     const comunitaria = searchParams.get("comunitaria");
     const intrabajo = searchParams.get("intrabajo");
+    const vista = searchParams.get("vista");
 
     const solicitudesAprobadas = await prisma.solicitud.findMany({
       where: {
         estado: "aprobado",
         citado: true,
-        entrevistaPasada: true
+        entrevistaPasada: true,
+        citadoDesdeReserva: vista === "citados" ? true : false
       },
       include: {
         candidato: true,
@@ -108,6 +111,138 @@ export async function GET(request: NextRequest): Promise<Response> {
     console.error("Error fetching reserva:", error);
     return new Response(
       JSON.stringify({ error: "Error al obtener la reserva" }),
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: NextRequest): Promise<Response> {
+  try {
+    const data = await request.json() as {
+      email: string;
+      nombre: string;
+      plazaNombre: string;
+      fechaCita: string;
+      direccion: string;
+      requisitos: string;
+      solicitudId: number;
+    };
+
+    if (!data.email || !data.nombre || !data.plazaNombre || !data.fechaCita || !data.direccion || !data.requisitos) {
+      return new Response(
+        JSON.stringify({ error: "Todos los campos son obligatorios" }),
+        { status: 400 }
+      );
+    }
+
+    const emailSent = await sendCitaEmail(
+      data.email,
+      data.nombre,
+      data.plazaNombre,
+      data.fechaCita,
+      data.requisitos,
+      data.direccion
+    );
+
+    if (!emailSent) {
+      return new Response(
+        JSON.stringify({ error: "No se pudo enviar el email de cita" }),
+        { status: 500 }
+      );
+    }
+
+    await prisma.solicitud.update({
+      where: { id: data.solicitudId },
+      data: { citadoDesdeReserva: true }
+    });
+
+    return Response.json({ success: true, message: "Cita enviada exitosamente" });
+  } catch (error) {
+    console.error("Error sending cita email:", error);
+    return new Response(
+      JSON.stringify({ error: "Error al enviar el email de cita" }),
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: NextRequest): Promise<Response> {
+  try {
+    const data = await request.json() as { solicitudId?: number; candidatoId?: number; accion: string };
+
+    if (!data.accion || (!data.solicitudId && !data.candidatoId)) {
+      return new Response(
+        JSON.stringify({ error: "solicitudId o candidatoId, y accion son requeridos" }),
+        { status: 400 }
+      );
+    }
+
+    if (data.accion === "denegar") {
+      if (data.solicitudId) {
+        await prisma.solicitud.update({
+          where: { id: data.solicitudId },
+          data: { citadoDesdeReserva: false }
+        });
+      } else if (data.candidatoId) {
+        await prisma.solicitud.updateMany({
+          where: { candidatoId: data.candidatoId, citadoDesdeReserva: true },
+          data: { citadoDesdeReserva: false }
+        });
+      }
+      return Response.json({ success: true, message: "Candidato devuelto a la reserva" });
+    }
+
+    if (data.accion === "aprobar") {
+      if (data.candidatoId) {
+        const solicitudesDelCandidato = await prisma.solicitud.findMany({
+          where: { candidatoId: data.candidatoId }
+        });
+
+        const plazasArchivadas = solicitudesDelCandidato.map(s => s.plazaId);
+
+        const resultado = await prisma.solicitud.updateMany({
+          where: { candidatoId: data.candidatoId },
+          data: { 
+            estado: "contratado",
+            citadoDesdeReserva: false,
+            archivado: true
+          }
+        });
+
+        const plazasDesbloqueadas: number[] = [];
+        for (const plazaId of plazasArchivadas) {
+          const solicitudesActivas = await prisma.solicitud.count({
+            where: {
+              plazaId,
+              archivado: false,
+              estado: { in: ["pendiente", "aprobado"] }
+            }
+          });
+          if (solicitudesActivas === 0) {
+            plazasDesbloqueadas.push(plazaId);
+          }
+        }
+
+        return Response.json({ 
+          success: true, 
+          message: `${resultado.count} solicitudes archivadas`,
+          plazasDesbloqueadas
+        });
+      }
+      return new Response(
+        JSON.stringify({ error: "Para aprobar se requiere candidatoId" }),
+        { status: 400 }
+      );
+    }
+
+    return new Response(
+      JSON.stringify({ error: "Accion no valida. Use 'denegar' o 'aprobar'" }),
+      { status: 400 }
+    );
+  } catch (error) {
+    console.error("Error al procesar solicitud:", error);
+    return new Response(
+      JSON.stringify({ error: "Error al procesar la solicitud" }),
       { status: 500 }
     );
   }
