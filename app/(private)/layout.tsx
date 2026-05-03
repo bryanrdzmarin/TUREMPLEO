@@ -10,6 +10,7 @@ const navItems = [
   { href: "/candidatos", label: "Candidatos" },
   { href: "/reserva", label: "Reserva" },
   { href: "/contratados", label: "Contratados" },
+  { href: "/informacion", label: "Información" },
 ];
 
 export default function PrivateLayout({ children }: { children: React.ReactNode }) {
