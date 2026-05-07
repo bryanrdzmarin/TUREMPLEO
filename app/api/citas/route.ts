@@ -1,6 +1,14 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendCitaEmail } from "@/lib/email";
+import { getUserFromRequest } from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
+import { ACCIONES_AUDITORIA, ENTIDADES_AUDITORIA } from "@/lib/audit-constants";
+
+async function getAuthUserId(request: NextRequest): Promise<number | undefined> {
+  const payload = await getUserFromRequest(request);
+  return payload?.userId;
+}
 
 interface CitaInput {
   solicitudId: number;
@@ -96,6 +104,16 @@ export async function POST(request: NextRequest): Promise<Response> {
       );
     }
 
+    const userId = await getAuthUserId(request);
+    await logAudit({
+      userId,
+      accion: ACCIONES_AUDITORIA.CITAR_CANDIDATO,
+      entidad: ENTIDADES_AUDITORIA.CITA,
+      entidadId: cita.id,
+      detalles: { solicitudId: data.solicitudId, fechaCita: data.fechaCita, plaza: solicitud.plazaNombre, candidato: solicitud.candidato.nombre },
+      request,
+    });
+
     return Response.json({ ...cita, emailSent: true });
   } catch (error) {
     console.error("Error creando cita:", error);
@@ -174,6 +192,16 @@ export async function PUT(request: NextRequest): Promise<Response> {
       data.requisitos,
       data.direccion
     );
+
+    const userId = await getAuthUserId(request);
+    await logAudit({
+      userId,
+      accion: ACCIONES_AUDITORIA.ACTUALIZAR_CITA,
+      entidad: ENTIDADES_AUDITORIA.CITA,
+      entidadId: cita.id,
+      detalles: { solicitudId: data.solicitudId, fechaCita: data.fechaCita, plaza: solicitud.plazaNombre },
+      request,
+    });
 
     return Response.json({ ...cita, emailSent });
   } catch (error) {

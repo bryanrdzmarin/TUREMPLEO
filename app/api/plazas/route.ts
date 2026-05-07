@@ -1,5 +1,13 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getUserFromRequest } from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
+import { ACCIONES_AUDITORIA, ENTIDADES_AUDITORIA } from "@/lib/audit-constants";
+
+async function getAuthUserId(request: NextRequest): Promise<number | undefined> {
+  const payload = await getUserFromRequest(request);
+  return payload?.userId;
+}
 
 export async function GET(): Promise<Response> {
   try {
@@ -37,6 +45,16 @@ export async function POST(request: NextRequest): Promise<Response> {
       }
     });
 
+    const userId = await getAuthUserId(request);
+    await logAudit({
+      userId,
+      accion: ACCIONES_AUDITORIA.CREAR_PLAZA,
+      entidad: ENTIDADES_AUDITORIA.PLAZA,
+      entidadId: plaza.id,
+      detalles: { nombre: plaza.nombre, requisitos: plaza.requisitos, funciones: plaza.funciones },
+      request,
+    });
+
     return Response.json(plaza);
   } catch (error) {
     console.error("Error creating plaza:", error);
@@ -58,6 +76,8 @@ export async function PUT(request: NextRequest): Promise<Response> {
       );
     }
 
+    const plazaExistente = await prisma.plaza.findUnique({ where: { id: data.id } });
+
     const plaza = await prisma.plaza.update({
       where: { id: data.id },
       data: {
@@ -66,6 +86,23 @@ export async function PUT(request: NextRequest): Promise<Response> {
         funciones: data.funciones,
         activo: data.activo
       }
+    });
+
+    const userId = await getAuthUserId(request);
+    await logAudit({
+      userId,
+      accion: ACCIONES_AUDITORIA.ACTUALIZAR_PLAZA,
+      entidad: ENTIDADES_AUDITORIA.PLAZA,
+      entidadId: plaza.id,
+      detalles: {
+        nombre: plaza.nombre,
+        activo: plaza.activo,
+        cambios: {
+          nombreAnterior: plazaExistente?.nombre,
+          activoAnterior: plazaExistente?.activo,
+        },
+      },
+      request,
     });
 
     return Response.json(plaza);
@@ -115,6 +152,15 @@ export async function DELETE(request: NextRequest): Promise<Response> {
     await prisma.plaza.update({
       where: { id: numericId },
       data: { eliminado: true }
+    });
+
+    const userId = await getAuthUserId(request);
+    await logAudit({
+      userId,
+      accion: ACCIONES_AUDITORIA.ELIMINAR_PLAZA,
+      entidad: ENTIDADES_AUDITORIA.PLAZA,
+      entidadId: numericId,
+      request,
     });
 
     return Response.json({ success: true });

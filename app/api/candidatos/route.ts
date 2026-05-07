@@ -1,5 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { sendAprobacionEmail } from "@/lib/email";
+import { getUserFromRequest } from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
+import { ACCIONES_AUDITORIA, ENTIDADES_AUDITORIA } from "@/lib/audit-constants";
+
+async function getAuthUserId(request: Request): Promise<number | undefined> {
+  const payload = await getUserFromRequest(request as any);
+  return payload?.userId;
+}
 
 export async function GET(request: Request): Promise<Response> {
   try {
@@ -269,6 +277,16 @@ export async function PUT(request: Request): Promise<Response> {
         console.warn("No se pudo enviar el email de aprobación al candidato:", solicitudActual.candidato.email);
       }
     }
+
+    const userId = await getAuthUserId(request);
+    await logAudit({
+      userId,
+      accion: entrevistaPasada ? ACCIONES_AUDITORIA.MARCAR_ENTREVISTA_PASADA : ACCIONES_AUDITORIA.MARCAR_ENTREVISTA_RECHAZADA,
+      entidad: ENTIDADES_AUDITORIA.SOLICITUD,
+      entidadId: id,
+      detalles: { candidato: solicitudActual.candidato.nombre, plaza: solicitudActual.plazaNombre },
+      request,
+    });
 
     return Response.json(candidato);
   } catch (error) {

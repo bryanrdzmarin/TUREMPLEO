@@ -212,3 +212,129 @@ export async function sendAprobacionEmail(
     return false;
   }
 }
+
+export async function sendPasswordChangedEmail(
+  email: string,
+  nombre: string,
+  nuevaPassword: string
+): Promise<boolean> {
+  try {
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'TurEmpleo <onboarding@resend.dev>',
+      to: email,
+      subject: 'Tu contraseña ha sido cambiada - TurEmpleo',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #002A8F 0%, #0044CC 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">Contraseña Restablecida</h1>
+            <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">TurEmpleo - Panel de Administración</p>
+          </div>
+          
+          <div style="background: white; padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
+            <p style="font-size: 16px; color: #333;">Hola <strong>${nombre}</strong>,</p>
+            
+            <p style="font-size: 16px; color: #333;">
+              Un administrador ha restablecido la contraseña de tu cuenta. Esta es tu nueva contraseña:
+            </p>
+            
+            <div style="background: #f8f9fa; border-left: 4px solid #002A8F; padding: 20px; margin: 25px 0; text-align: center;">
+              <p style="font-size: 14px; color: #555; margin: 0 0 10px 0;">Tu nueva contraseña:</p>
+              <p style="font-size: 28px; font-weight: bold; color: #002A8F; letter-spacing: 3px; margin: 0; font-family: monospace;">${nuevaPassword}</p>
+            </div>
+            
+            <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 20px; margin: 25px 0;">
+              <p style="font-size: 14px; color: #856404; margin: 0;">
+                <strong>⚠️ Importante:</strong> Te recomendamos cambiar esta contraseña temporal por una personal al iniciar sesión.
+              </p>
+            </div>
+            
+            <div style="background: #d4edda; border: 1px solid #28a745; border-radius: 8px; padding: 20px; margin: 25px 0; text-align: center;">
+              <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/login" 
+                 style="display: inline-block; background: #28a745; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold;">
+                Ir al Login
+              </a>
+            </div>
+            
+            <p style="font-size: 12px; color: #999; margin-top: 30px;">
+              Si no esperabas este cambio, comunícate con el administrador del sistema.
+            </p>
+          </div>
+          
+          <div style="background: #f5f5f5; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;">
+            <p style="color: #888; font-size: 12px; margin: 0;">
+              © ${new Date().getFullYear()} TurEmpleo - Todos los derechos reservados
+            </p>
+          </div>
+        </div>
+      `
+    });
+    return true;
+  } catch (error) {
+    console.error('Error enviando email de contraseña cambiada:', error);
+    return false;
+  }
+}
+
+export async function sendResetPasswordEmail(
+  email: string,
+  nombre: string,
+  resetUrl: string
+): Promise<boolean> {
+  try {
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'TurEmpleo <onboarding@resend.dev>',
+      to: email,
+      subject: 'Restablecer tu contraseña - TurEmpleo',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #002A8F 0%, #0044CC 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">Restablecer Contraseña</h1>
+            <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">TurEmpleo - Panel de Administración</p>
+          </div>
+          
+          <div style="background: white; padding: 30px; border: 1px solid #e0e0e0; border-top: none;">
+            <p style="font-size: 16px; color: #333;">Hola <strong>${nombre}</strong>,</p>
+            
+            <p style="font-size: 16px; color: #333;">
+              Hemos recibido una solicitud para restablecer la contraseña de tu cuenta.
+            </p>
+            
+            <div style="background: #f8f9fa; border-left: 4px solid #002A8F; padding: 15px; margin: 20px 0;">
+              <p style="font-size: 14px; color: #555; margin: 0;">
+                Haz clic en el botón de abajo para crear una nueva contraseña. Este enlace expirará en <strong>1 hora</strong>.
+              </p>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${resetUrl}" 
+                 style="display: inline-block; background: #002A8F; color: white; padding: 14px 35px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold;">
+                Restablecer Contraseña
+              </a>
+            </div>
+            
+            <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 20px; margin: 25px 0;">
+              <p style="font-size: 14px; color: #856404; margin: 0;">
+                <strong>⚠️ Importante:</strong> Si no solicitaste este cambio, puedes ignorar este correo. Tu contraseña no cambiará.
+              </p>
+            </div>
+            
+            <p style="font-size: 12px; color: #999; margin-top: 30px;">
+              Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+              <a href="${resetUrl}" style="color: #002A8F; word-break: break-all;">${resetUrl}</a>
+            </p>
+          </div>
+          
+          <div style="background: #f5f5f5; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;">
+            <p style="color: #888; font-size: 12px; margin: 0;">
+              © ${new Date().getFullYear()} TurEmpleo - Todos los derechos reservados
+            </p>
+          </div>
+        </div>
+      `
+    });
+    return true;
+  } catch (error) {
+    console.error('Error enviando email de reset:', error);
+    return false;
+  }
+}

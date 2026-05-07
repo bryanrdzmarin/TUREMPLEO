@@ -1,6 +1,14 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendPinEmail } from "@/lib/email";
+import { getUserFromRequest } from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
+import { ACCIONES_AUDITORIA, ENTIDADES_AUDITORIA } from "@/lib/audit-constants";
+
+async function getAuthUserId(request: NextRequest): Promise<number | undefined> {
+  const payload = await getUserFromRequest(request);
+  return payload?.userId;
+}
 
 interface SolicitudInput {
   ci: string;
@@ -187,6 +195,14 @@ export async function POST(request: NextRequest): Promise<Response> {
       }
     });
 
+    await logAudit({
+      accion: ACCIONES_AUDITORIA.CREAR_SOLICITUD,
+      entidad: ENTIDADES_AUDITORIA.SOLICITUD,
+      entidadId: solicitud.id,
+      detalles: { candidatoId: candidato.id, candidatoNombre: data.nombre, plazaNombre: data.plazaNombre, pin },
+      request,
+    });
+
     return Response.json(solicitud);
   } catch (error) {
     console.error("Error creating solicitud:", error);
@@ -246,10 +262,33 @@ export async function PUT(request: NextRequest): Promise<Response> {
       updateData.motivoDenegacion = data.motivoDenegacion;
     }
 
+    const solicitudAnterior = await prisma.solicitud.findUnique({ where: { id: parseInt(id) } });
+
     const solicitud = await prisma.solicitud.update({
       where: { id: parseInt(id) },
       data: updateData
     });
+
+    const userId = await getAuthUserId(request);
+    if (data.estado === "aprobado") {
+      await logAudit({
+        userId,
+        accion: ACCIONES_AUDITORIA.APROBAR_SOLICITUD,
+        entidad: ENTIDADES_AUDITORIA.SOLICITUD,
+        entidadId: solicitud.id,
+        detalles: { plazaNombre: solicitud.plazaNombre, estadoAnterior: solicitudAnterior?.estado },
+        request,
+      });
+    } else if (data.estado === "rechazado") {
+      await logAudit({
+        userId,
+        accion: ACCIONES_AUDITORIA.RECHAZAR_SOLICITUD,
+        entidad: ENTIDADES_AUDITORIA.SOLICITUD,
+        entidadId: solicitud.id,
+        detalles: { plazaNombre: solicitud.plazaNombre, motivo: data.motivoDenegacion },
+        request,
+      });
+    }
 
     return Response.json(solicitud);
   } catch (error) {

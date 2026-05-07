@@ -15,12 +15,16 @@ datasource db {
 
 
 model Usuario {
-  id        Int      @id @default(autoincrement())
-  nombre    String
-  email     String   @unique
-  password  String
-  rol       String   @default("admin")
-  creadoEn  DateTime @default(now())
+  id             Int                @id @default(autoincrement())
+  nombre         String
+  nombreUsuario  String             @unique
+  email          String             @unique
+  password       String
+  rol            String             @default("admin")
+  creadoEn       DateTime           @default(now())
+
+  tokensReset    TokenResetPassword[]
+  auditLogs      AuditLog[]
 }
 
 model Candidato {
@@ -73,12 +77,7 @@ trayectoriaPolitica String?
 
 
 
-model Hotel {
-  id        Int      @id @default(autoincrement())
-  nombre    String
-  direccion String?
-  creadoEn  DateTime @default(now())
-}
+
 
 model Plaza {
   id          Int      @id @default(autoincrement())
@@ -154,6 +153,29 @@ model InformacionCan {
   actualizadoEn DateTime  @updatedAt
 }
 
+model TokenResetPassword {
+  id          Int      @id @default(autoincrement())
+  usuarioId   Int
+  token       String   @unique
+  usado       Boolean  @default(false)
+  expiraEn    DateTime
+  creadoEn    DateTime @default(now())
+
+  usuario     Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  usuarioId   Int?
+  accion      String
+  entidad     String
+  entidadId   Int?
+  detalles    String?
+  ip          String?
+  creadoEn    DateTime @default(now())
+
+  usuario     Usuario?  @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+}
 
 
 

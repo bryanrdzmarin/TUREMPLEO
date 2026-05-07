@@ -1,6 +1,14 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendCitaEmail } from "@/lib/email";
+import { getUserFromRequest } from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
+import { ACCIONES_AUDITORIA, ENTIDADES_AUDITORIA } from "@/lib/audit-constants";
+
+async function getAuthUserId(request: NextRequest): Promise<number | undefined> {
+  const payload = await getUserFromRequest(request);
+  return payload?.userId;
+}
 
 export async function GET(request: NextRequest): Promise<Response> {
   try {
@@ -156,6 +164,16 @@ export async function POST(request: NextRequest): Promise<Response> {
       data: { citadoDesdeReserva: true }
     });
 
+    const userId = await getAuthUserId(request);
+    await logAudit({
+      userId,
+      accion: ACCIONES_AUDITORIA.CITAR_DESDE_RESERVA,
+      entidad: ENTIDADES_AUDITORIA.SOLICITUD,
+      entidadId: data.solicitudId,
+      detalles: { candidato: data.nombre, plaza: data.plazaNombre, fechaCita: data.fechaCita },
+      request,
+    });
+
     return Response.json({ success: true, message: "Cita enviada exitosamente" });
   } catch (error) {
     console.error("Error sending cita email:", error);
@@ -189,6 +207,17 @@ export async function PUT(request: NextRequest): Promise<Response> {
           data: { citadoDesdeReserva: false }
         });
       }
+
+      const userId = await getAuthUserId(request);
+      await logAudit({
+        userId,
+        accion: ACCIONES_AUDITORIA.DENEGAR_DESDE_RESERVA,
+        entidad: ENTIDADES_AUDITORIA.SOLICITUD,
+        entidadId: data.solicitudId ?? undefined,
+        detalles: { candidatoId: data.candidatoId },
+        request,
+      });
+
       return Response.json({ success: true, message: "Candidato devuelto a la reserva" });
     }
 
@@ -222,6 +251,16 @@ export async function PUT(request: NextRequest): Promise<Response> {
             plazasDesbloqueadas.push(plazaId);
           }
         }
+
+        const userId = await getAuthUserId(request);
+        await logAudit({
+          userId,
+          accion: ACCIONES_AUDITORIA.CONTRATAR_DESDE_RESERVA,
+          entidad: ENTIDADES_AUDITORIA.SOLICITUD,
+          entidadId: undefined,
+          detalles: { candidatoId: data.candidatoId, solicitudesArchivadas: resultado.count, plazasDesbloqueadas },
+          request,
+        });
 
         return Response.json({ 
           success: true, 

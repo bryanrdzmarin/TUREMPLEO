@@ -1,5 +1,13 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getUserFromRequest } from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
+import { ACCIONES_AUDITORIA, ENTIDADES_AUDITORIA } from "@/lib/audit-constants";
+
+async function getAuthUserId(request: NextRequest): Promise<number | undefined> {
+  const payload = await getUserFromRequest(request);
+  return payload?.userId;
+}
 
 interface InformacionCanInput {
   solicitudId: number;
@@ -88,6 +96,16 @@ export async function POST(request: NextRequest): Promise<Response> {
       }
     });
 
+    const userId = await getAuthUserId(request);
+    await logAudit({
+      userId,
+      accion: ACCIONES_AUDITORIA.CREAR_EVALUACION,
+      entidad: ENTIDADES_AUDITORIA.EVALUACION,
+      entidadId: informacion.id,
+      detalles: { solicitudId: data.solicitudId, titulacion: data.titulacion },
+      request,
+    });
+
     return Response.json(informacion);
   } catch (error) {
     console.error("Error creating informacionCan:", error);
@@ -112,6 +130,8 @@ export async function PUT(request: NextRequest): Promise<Response> {
 
     const data = await request.json() as Partial<InformacionCanInput>;
 
+    const informacionAnterior = await prisma.informacionCan.findUnique({ where: { id: parseInt(id) } });
+
     const informacion = await prisma.informacionCan.update({
       where: { id: parseInt(id) },
       data: {
@@ -127,6 +147,16 @@ export async function PUT(request: NextRequest): Promise<Response> {
         intrabajo: data.intrabajo !== undefined ? data.intrabajo : undefined,
         desempeno: data.desempeno !== undefined ? data.desempeno : undefined,
       }
+    });
+
+    const userId = await getAuthUserId(request);
+    await logAudit({
+      userId,
+      accion: ACCIONES_AUDITORIA.ACTUALIZAR_EVALUACION,
+      entidad: ENTIDADES_AUDITORIA.EVALUACION,
+      entidadId: informacion.id,
+      detalles: { solicitudId: informacion.solicitudId },
+      request,
     });
 
     return Response.json(informacion);
