@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ExportPDFButton } from "@/components/privada/ui/ExportPDFButton";
 
 interface AuditLog {
   id: number;
@@ -42,13 +43,10 @@ const ACCION_LABELS: Record<string, string> = {
   MARCAR_ENTREVISTA_RECHAZADA: "Entrevista rechazada",
   CITAR_CANDIDATO: "Citar candidato",
   ACTUALIZAR_CITA: "Actualizar cita",
+  CREAR_EVALUACION: "Crear evaluación",
   CONTRATAR_DESDE_RESERVA: "Contratar desde reserva",
   DENEGAR_DESDE_RESERVA: "Denegar desde reserva",
   CITAR_DESDE_RESERVA: "Citar desde reserva",
-  CREAR_CANDIDATO: "Crear candidato",
-  ACTUALIZAR_CANDIDATO: "Actualizar candidato",
-  CREAR_EVALUACION: "Crear evaluación",
-  ACTUALIZAR_EVALUACION: "Actualizar evaluación",
   INTENTO_LOGIN_FALLIDO: "Intento de login fallido",
 };
 
@@ -68,13 +66,10 @@ const ACCION_COLORS: Record<string, string> = {
   MARCAR_ENTREVISTA_RECHAZADA: "bg-red-100 text-red-800",
   CITAR_CANDIDATO: "bg-purple-100 text-purple-800",
   ACTUALIZAR_CITA: "bg-blue-100 text-blue-800",
+  CREAR_EVALUACION: "bg-green-100 text-green-800",
   CONTRATAR_DESDE_RESERVA: "bg-green-100 text-green-800",
   DENEGAR_DESDE_RESERVA: "bg-red-100 text-red-800",
   CITAR_DESDE_RESERVA: "bg-purple-100 text-purple-800",
-  CREAR_CANDIDATO: "bg-green-100 text-green-800",
-  ACTUALIZAR_CANDIDATO: "bg-blue-100 text-blue-800",
-  CREAR_EVALUACION: "bg-green-100 text-green-800",
-  ACTUALIZAR_EVALUACION: "bg-blue-100 text-blue-800",
   INTENTO_LOGIN_FALLIDO: "bg-red-100 text-red-800",
 };
 
@@ -169,13 +164,63 @@ export default function AuditoriaPage() {
     });
   };
 
+  const exportToPDF = async () => {
+    const { default: jsPDF } = await import("jspdf");
+    const { default: autoTable } = await import("jspdf-autotable");
+
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.setTextColor(0, 42, 143);
+    doc.text("Reporte de Auditoría", 14, 20);
+
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Fecha de generación: ${new Date().toLocaleDateString("es-ES")}`, 14, 28);
+
+    const tableData = logs.map((log) => [
+      formatFecha(log.creadoEn),
+      log.usuario ? log.usuario.nombreUsuario : "Sistema",
+      ACCION_LABELS[log.accion] || log.accion,
+      log.entidad,
+      formatDetalles(log.detalles),
+      log.ip || "—",
+    ]);
+
+    autoTable(doc, {
+      startY: 35,
+      head: [["Fecha", "Usuario", "Acción", "Entidad", "Detalles", "IP"]],
+      body: tableData,
+      headStyles: { fillColor: [0, 42, 143], textColor: 255, fontStyle: "bold" },
+      styles: { fontSize: 7, cellPadding: 2 },
+      columnStyles: {
+        0: { cellWidth: 35 },
+        1: { cellWidth: 30 },
+        2: { cellWidth: 40 },
+        3: { cellWidth: 25 },
+        4: { cellWidth: 50 },
+        5: { cellWidth: 20 },
+      },
+    });
+
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    doc.setFontSize(10);
+    doc.setTextColor(0);
+    doc.text(`Total de registros: ${logs.length}`, 14, finalY);
+
+    doc.save("auditoria.pdf");
+  };
+
   const entidades = ["Usuario", "Plaza", "Solicitud", "Candidato", "Cita", "Evaluacion", "Sistema"];
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Registro de Auditoría</h1>
-        <p className="text-sm text-gray-500 mt-1">Historial de todas las acciones realizadas en el sistema</p>
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Registro de Auditoría</h1>
+          <p className="text-sm text-gray-500 mt-1">Historial de todas las acciones realizadas en el sistema</p>
+        </div>
+        <ExportPDFButton onExport={exportToPDF} disabled={logs.length === 0} />
       </div>
 
       <form onSubmit={handleFiltros} className="bg-white rounded-lg shadow p-4 mb-6">

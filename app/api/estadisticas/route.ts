@@ -15,8 +15,10 @@ export async function GET(): Promise<Response> {
       totalPlazasActivas,
       totalSolicitudes,
       totalCandidatos,
+      pendienteCita,
       citasPendientes,
       enReserva,
+      citadosEntrevista,
       totalContratados,
       solicitudesPorEstado,
       solicitudesPorPlaza,
@@ -35,11 +37,19 @@ export async function GET(): Promise<Response> {
       prisma.candidato.count(),
 
       prisma.solicitud.count({
+        where: { estado: "aprobado", citado: false, archivado: false }
+      }),
+
+      prisma.solicitud.count({
         where: { citado: true, entrevistaPasada: null, archivado: false }
       }),
 
       prisma.solicitud.count({
         where: { estado: "aprobado", entrevistaPasada: true, citado: true, citadoDesdeReserva: false, archivado: false }
+      }),
+
+      prisma.solicitud.count({
+        where: { estado: "aprobado", citado: true, entrevistaPasada: true, citadoDesdeReserva: true, archivado: false }
       }),
 
       prisma.solicitud.count({
@@ -140,8 +150,10 @@ export async function GET(): Promise<Response> {
         totalPlazasActivas,
         totalSolicitudes,
         totalCandidatos,
+        pendienteCita,
         citasPendientes,
         enReserva,
+        citadosEntrevista,
         totalContratados,
       },
       solicitudesPorEstado: solicitudesPorEstado.map((s) => ({

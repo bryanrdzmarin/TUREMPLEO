@@ -77,21 +77,21 @@ export function useReserva() {
   const [loading, setLoading] = useState(true);
   const [filtros, setFiltros] = useState<Filtros>(defaultFiltros);
   const [candidatoSeleccionado, setCandidatoSeleccionado] = useState<ReservaData | null>(null);
-  const [vistaActiva, setVistaActiva] = useState<VistaActiva>("reserva");
+  const [vistaActiva, setVistaActiva] = useState<VistaActiva>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("reservaVistaActiva");
+      if (saved === "citados" || saved === "reserva") return saved;
+    }
+    return "reserva";
+  });
   const [modalCitar, setModalCitar] = useState<ReservaData | null>(null);
   const [plazaSeleccionada, setPlazaSeleccionada] = useState<PlazaAprobada | null>(null);
   const [formCitar, setFormCitar] = useState({ fechaCita: "", direccion: "", requisitos: "" });
   const [citando, setCitando] = useState(false);
   const [stepCitar, setStepCitar] = useState<"seleccionar" | "formulario">("seleccionar");
 
-  useEffect(() => {
-    const saved = localStorage.getItem("reservaVistaActiva");
-    if (saved === "citados" || saved === "reserva") {
-      setVistaActiva(saved);
-    }
-  }, []);
-
   const handleSetVistaActiva = (vista: VistaActiva) => {
+    setReserva([]);
     setVistaActiva(vista);
     localStorage.setItem("reservaVistaActiva", vista);
   };
@@ -118,6 +118,7 @@ export function useReserva() {
   }, []);
 
   const fetchReserva = useCallback(async () => {
+    setReserva([]);
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -225,6 +226,7 @@ export function useReserva() {
       if (res.ok) {
         alert("Candidato devuelto a la reserva");
         fetchReserva();
+        fetchPlazas();
       }
     } catch (error) {
       console.error("Error denegando:", error);
@@ -247,6 +249,7 @@ export function useReserva() {
           alert(data.message);
         }
         fetchReserva();
+        fetchPlazas();
       } else {
         alert(data.error || "Error al aprobar");
       }

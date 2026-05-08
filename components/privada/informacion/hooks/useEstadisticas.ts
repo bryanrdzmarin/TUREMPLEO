@@ -5,8 +5,10 @@ export interface EstadisticasData {
     totalPlazasActivas: number;
     totalSolicitudes: number;
     totalCandidatos: number;
+    pendienteCita: number;
     citasPendientes: number;
     enReserva: number;
+    citadosEntrevista: number;
     totalContratados: number;
   };
   solicitudesPorEstado: { estado: string; total: number }[];

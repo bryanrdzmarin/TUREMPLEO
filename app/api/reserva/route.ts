@@ -30,7 +30,10 @@ export async function GET(request: NextRequest): Promise<Response> {
         estado: "aprobado",
         citado: true,
         entrevistaPasada: true,
-        citadoDesdeReserva: vista === "citados" ? true : false
+        citadoDesdeReserva: vista === "citados" ? true : false,
+        ...(vista !== "citados"
+          ? { candidato: { NOT: { solicitudes: { some: { citadoDesdeReserva: true } } } } }
+          : {})
       },
       include: {
         candidato: true,
@@ -156,6 +159,18 @@ export async function POST(request: NextRequest): Promise<Response> {
       return new Response(
         JSON.stringify({ error: "No se pudo enviar el email de cita" }),
         { status: 500 }
+      );
+    }
+
+    const solicitudExists = await prisma.solicitud.findUnique({
+      where: { id: data.solicitudId },
+      select: { id: true }
+    });
+
+    if (!solicitudExists) {
+      return new Response(
+        JSON.stringify({ error: "Solicitud no encontrada" }),
+        { status: 404 }
       );
     }
 

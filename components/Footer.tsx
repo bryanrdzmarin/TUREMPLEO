@@ -50,7 +50,7 @@ export default function Footer() {
                 Contacto
               </h4>
               <div className="flex flex-col gap-0.5 opacity-90">
-                <p>Calle Principal #123, La Habana</p>
+                <p>Carretera a Patria , Moron (Ciego de Ávila)</p>
                 <p>contacto@turempleo.cu</p>
                 <p>+53 7 1234567 / +53 5 9876543</p>
               </div>

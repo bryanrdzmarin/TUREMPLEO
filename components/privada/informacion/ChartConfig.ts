@@ -78,7 +78,7 @@ export function getChartOptions(title: string, showYAxis = true) {
     },
     scales: {
       ...CHART_OPTIONS.scales,
-      y: showYAxis ? CHART_OPTIONS.scales.y : false,
+      ...(showYAxis ? { y: CHART_OPTIONS.scales.y } : {}),
     },
   };
 }

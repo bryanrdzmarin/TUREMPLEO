@@ -56,6 +56,8 @@ const allNavItems = Object.entries(routeRoleMap).map(([href, roles]) => ({
     ? "Usuarios"
     : href === "/admin/auditoria"
     ? "Auditoría"
+    : href === "/informacion"
+    ? "Estadística"
     : href.slice(1).charAt(0).toUpperCase() + href.slice(2),
   roles,
 }));
