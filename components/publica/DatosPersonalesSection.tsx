@@ -15,6 +15,7 @@
  *   fechaMaxima: Fecha máxima permitida (hace 18 años)
  */
 import { FormErrors } from "./types";
+import { filterLettersOnly, filterNumbersOnly } from "./form-utils";
 
 interface DatosPersonalesSectionProps {
   errors: FormErrors;
@@ -48,21 +49,21 @@ export default function DatosPersonalesSection({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Nombres <span className="text-red-500">*</span>
           </label>
-          <input type="text" name="nombre" className={inputClass(!!errors.nombre)} />
+          <input type="text" name="nombre" onChange={(e) => { e.target.value = filterLettersOnly(e.target.value); }} className={inputClass(!!errors.nombre)} />
           {errors.nombre && <p className={errorClass}>{errors.nombre}</p>}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             1er Apellido <span className="text-red-500">*</span>
           </label>
-          <input type="text" name="primerApellido" className={inputClass(!!errors.primerApellido)} />
+          <input type="text" name="primerApellido" onChange={(e) => { e.target.value = filterLettersOnly(e.target.value); }} className={inputClass(!!errors.primerApellido)} />
           {errors.primerApellido && <p className={errorClass}>{errors.primerApellido}</p>}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             2do Apellido <span className="text-red-500">*</span>
           </label>
-          <input type="text" name="segundoApellido" className={inputClass(!!errors.segundoApellido)} />
+          <input type="text" name="segundoApellido" onChange={(e) => { e.target.value = filterLettersOnly(e.target.value); }} className={inputClass(!!errors.segundoApellido)} />
           {errors.segundoApellido && <p className={errorClass}>{errors.segundoApellido}</p>}
         </div>
       </div>
@@ -72,7 +73,7 @@ export default function DatosPersonalesSection({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             No. Carné de Identidad <span className="text-red-500">*</span>
           </label>
-          <input type="text" name="ci" maxLength={11} placeholder="11 dígitos" className={inputClass(!!errors.ci)} />
+          <input type="text" name="ci" maxLength={11} placeholder="11 dígitos" onChange={(e) => { e.target.value = filterNumbersOnly(e.target.value); }} className={inputClass(!!errors.ci)} />
           {errors.ci && <p className={errorClass}>{errors.ci}</p>}
         </div>
         <div>
@@ -80,13 +81,15 @@ export default function DatosPersonalesSection({
             Teléfono <span className="text-red-500">*</span>
           </label>
           <input type="text" name="telefono" onChange={(e) => {
-            let value = e.target.value.replace(/[^0-9+]/g, "");
-            if (!value.startsWith("+53")) {
-              value = "+53 " + value.replace(/[^0-9]/g, "");
+            let value = e.target.value.replace(/[^0-9+ ]/g, "");
+            if (value && !value.startsWith("+53")) {
+              const digits = value.replace(/[^0-9]/g, "");
+              value = digits ? `+53 ${digits}` : "";
             }
-            const partes = value.split(" ");
-            if (partes.length > 1 && partes[1].length > 8) {
-              value = partes[0] + " " + partes[1].substring(0, 8);
+            const parts = value.split(" ");
+            if (parts.length > 1 && parts[1].length > 8) {
+              parts[1] = parts[1].substring(0, 8);
+              value = parts.join(" ");
             }
             e.target.value = value;
           }} placeholder="+53 51234567" maxLength={13} className={inputClass(!!errors.telefono)} />
@@ -182,7 +185,7 @@ export default function DatosPersonalesSection({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Municipio de Nacimiento <span className="text-red-500">*</span>
           </label>
-          <input type="text" name="municipioNacimiento" className={inputClass(!!errors.municipioNacimiento)} />
+          <input type="text" name="municipioNacimiento" onChange={(e) => { e.target.value = filterLettersOnly(e.target.value); }} className={inputClass(!!errors.municipioNacimiento)} />
           {errors.municipioNacimiento && <p className={errorClass}>{errors.municipioNacimiento}</p>}
         </div>
       </div>
@@ -192,14 +195,14 @@ export default function DatosPersonalesSection({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Nombre del Padre <span className="text-red-500">*</span>
           </label>
-          <input type="text" name="nombrePadre" className={inputClass(!!errors.nombrePadre)} />
+          <input type="text" name="nombrePadre" onChange={(e) => { e.target.value = filterLettersOnly(e.target.value); }} className={inputClass(!!errors.nombrePadre)} />
           {errors.nombrePadre && <p className={errorClass}>{errors.nombrePadre}</p>}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Nombre de la Madre <span className="text-red-500">*</span>
           </label>
-          <input type="text" name="nombreMadre" className={inputClass(!!errors.nombreMadre)} />
+          <input type="text" name="nombreMadre" onChange={(e) => { e.target.value = filterLettersOnly(e.target.value); }} className={inputClass(!!errors.nombreMadre)} />
           {errors.nombreMadre && <p className={errorClass}>{errors.nombreMadre}</p>}
         </div>
       </div>
@@ -217,21 +220,21 @@ export default function DatosPersonalesSection({
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Reparto <span className="text-red-500">*</span>
           </label>
-          <input type="text" name="reparto" className={inputClass(!!errors.reparto)} />
+          <input type="text" name="reparto" onChange={(e) => { e.target.value = filterLettersOnly(e.target.value); }} className={inputClass(!!errors.reparto)} />
           {errors.reparto && <p className={errorClass}>{errors.reparto}</p>}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Municipio <span className="text-red-500">*</span>
           </label>
-          <input type="text" name="municipio" className={inputClass(!!errors.municipio)} />
+          <input type="text" name="municipio" onChange={(e) => { e.target.value = filterLettersOnly(e.target.value); }} className={inputClass(!!errors.municipio)} />
           {errors.municipio && <p className={errorClass}>{errors.municipio}</p>}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Provincia <span className="text-red-500">*</span>
           </label>
-          <input type="text" name="provincia" className={inputClass(!!errors.provincia)} />
+          <input type="text" name="provincia" onChange={(e) => { e.target.value = filterLettersOnly(e.target.value); }} className={inputClass(!!errors.provincia)} />
           {errors.provincia && <p className={errorClass}>{errors.provincia}</p>}
         </div>
       </div>
@@ -242,13 +245,15 @@ export default function DatosPersonalesSection({
             Teléfono Particular <span className="text-red-500">*</span>
           </label>
           <input type="text" name="telefonoParticular" onChange={(e) => {
-            let value = e.target.value;
-            if (!value.startsWith("+53")) {
-              value = "+53 " + value.replace(/[^0-9]/g, "");
+            let value = e.target.value.replace(/[^0-9+ ]/g, "");
+            if (value && !value.startsWith("+53")) {
+              const digits = value.replace(/[^0-9]/g, "");
+              value = digits ? `+53 ${digits}` : "";
             }
-            const partes = value.split(" ");
-            if (partes.length > 1 && partes[1].length > 8) {
-              value = partes[0] + " " + partes[1].substring(0, 8);
+            const parts = value.split(" ");
+            if (parts.length > 1 && parts[1].length > 8) {
+              parts[1] = parts[1].substring(0, 8);
+              value = parts.join(" ");
             }
             e.target.value = value;
           }} placeholder="+53 51234567" maxLength={13} className={inputClass(!!errors.telefonoParticular)} />
@@ -259,13 +264,15 @@ export default function DatosPersonalesSection({
             Teléfono Laboral <span className="text-red-500">*</span>
           </label>
           <input type="text" name="telefonoLaboral" onChange={(e) => {
-            let value = e.target.value;
-            if (!value.startsWith("+53")) {
-              value = "+53 " + value.replace(/[^0-9]/g, "");
+            let value = e.target.value.replace(/[^0-9+ ]/g, "");
+            if (value && !value.startsWith("+53")) {
+              const digits = value.replace(/[^0-9]/g, "");
+              value = digits ? `+53 ${digits}` : "";
             }
-            const partes = value.split(" ");
-            if (partes.length > 1 && partes[1].length > 8) {
-              value = partes[0] + " " + partes[1].substring(0, 8);
+            const parts = value.split(" ");
+            if (parts.length > 1 && parts[1].length > 8) {
+              parts[1] = parts[1].substring(0, 8);
+              value = parts.join(" ");
             }
             e.target.value = value;
           }} placeholder="+53 51234567" maxLength={13} className={inputClass(!!errors.telefonoLaboral)} />
@@ -276,13 +283,15 @@ export default function DatosPersonalesSection({
             Teléfono Familiar <span className="text-red-500">*</span>
           </label>
           <input type="text" name="telefonoFamiliar" onChange={(e) => {
-            let value = e.target.value;
-            if (!value.startsWith("+53")) {
-              value = "+53 " + value.replace(/[^0-9]/g, "");
+            let value = e.target.value.replace(/[^0-9+ ]/g, "");
+            if (value && !value.startsWith("+53")) {
+              const digits = value.replace(/[^0-9]/g, "");
+              value = digits ? `+53 ${digits}` : "";
             }
-            const partes = value.split(" ");
-            if (partes.length > 1 && partes[1].length > 8) {
-              value = partes[0] + " " + partes[1].substring(0, 8);
+            const parts = value.split(" ");
+            if (parts.length > 1 && parts[1].length > 8) {
+              parts[1] = parts[1].substring(0, 8);
+              value = parts.join(" ");
             }
             e.target.value = value;
           }} placeholder="+53 51234567" maxLength={13} className={inputClass(!!errors.telefonoFamiliar)} />

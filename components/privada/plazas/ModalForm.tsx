@@ -31,7 +31,10 @@ export function ModalForm({ open, editingPlaza, form, setForm, onSubmit, onClose
               <input
                 type="text"
                 value={form.nombre}
-                onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                onChange={(e) => {
+                  const soloLetras = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
+                  setForm({ ...form, nombre: soloLetras });
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#002A8F] focus:border-transparent"
                 required
               />

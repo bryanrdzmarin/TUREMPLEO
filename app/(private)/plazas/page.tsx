@@ -6,6 +6,7 @@ import { PlazasTable } from "@/components/privada/plazas/PlazasTable";
 import { ModalForm } from "@/components/privada/plazas/ModalForm";
 import { ModalDeleteConfirm } from "@/components/privada/plazas/ModalDeleteConfirm";
 import { ModalErrorDelete } from "@/components/privada/plazas/ModalErrorDelete";
+import { ModalErrorEdit } from "@/components/privada/plazas/ModalErrorEdit";
 
 export default function PlazasPage() {
   const {
@@ -26,6 +27,8 @@ export default function PlazasPage() {
     handleDelete,
     errorDelete,
     setErrorDelete,
+    errorEdit,
+    setErrorEdit,
     toggleActivo,
     handleInactivarPlaza,
     exportToPDF,
@@ -76,6 +79,15 @@ export default function PlazasPage() {
           message={errorDelete.message}
           onInactivar={() => handleInactivarPlaza(errorDelete.plaza)}
           onCancel={() => setErrorDelete(null)}
+        />
+      )}
+
+      {errorEdit && (
+        <ModalErrorEdit
+          open={errorEdit !== null}
+          message={errorEdit.message}
+          onInactivar={() => handleInactivarPlaza(errorEdit.plaza)}
+          onCancel={() => setErrorEdit(null)}
         />
       )}
     </div>

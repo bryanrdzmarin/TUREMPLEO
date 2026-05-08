@@ -9,8 +9,23 @@ async function getAuthUserId(request: NextRequest): Promise<number | undefined> 
   return payload?.userId;
 }
 
-export async function GET(): Promise<Response> {
+export async function GET(request: NextRequest): Promise<Response> {
   try {
+    const { searchParams } = new URL(request.url);
+    const checkId = searchParams.get("checkSolicitudes");
+
+    if (checkId) {
+      const numericId = parseInt(checkId);
+      const solicitudesActivas = await prisma.solicitud.findMany({
+        where: {
+          plazaId: numericId,
+          archivado: false,
+          estado: { in: ["pendiente", "aprobado"] }
+        }
+      });
+      return Response.json({ tieneSolicitudes: solicitudesActivas.length > 0 });
+    }
+
     const plazas = await prisma.plaza.findMany({
       where: { eliminado: false },
       orderBy: { id: "desc" }

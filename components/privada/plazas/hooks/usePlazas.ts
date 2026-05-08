@@ -25,6 +25,7 @@ export function usePlazas() {
   const [showInactive, setShowInactive] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [errorDelete, setErrorDelete] = useState<{message: string, plaza: Plaza} | null>(null);
+  const [errorEdit, setErrorEdit] = useState<{message: string, plaza: Plaza} | null>(null);
 
   const fetchPlazas = useCallback(async () => {
     try {
@@ -90,7 +91,18 @@ export function usePlazas() {
     }
   };
 
-  const openEditModal = (plaza: Plaza) => {
+  const openEditModal = async (plaza: Plaza) => {
+    try {
+      const res = await fetch(`/api/plazas?checkSolicitudes=${plaza.id}`);
+      const data = await res.json();
+      if (data.tieneSolicitudes) {
+        setErrorEdit({ message: "No se puede editar esta plaza porque tiene solicitudes activas", plaza });
+        return;
+      }
+    } catch {
+      setErrorEdit({ message: "Error al verificar solicitudes de la plaza", plaza });
+      return;
+    }
     setEditingPlaza(plaza);
     setForm({ nombre: plaza.nombre, requisitos: plaza.requisitos, funciones: plaza.funciones });
     setModalOpen(true);
@@ -129,6 +141,7 @@ export function usePlazas() {
         body: JSON.stringify({ ...plaza, activo: false })
       });
       setErrorDelete(null);
+      setErrorEdit(null);
       setDeleteConfirm(null);
       fetchPlazas();
     } catch (error) {
@@ -212,6 +225,8 @@ export function usePlazas() {
     handleDelete,
     errorDelete,
     setErrorDelete,
+    errorEdit,
+    setErrorEdit,
     toggleActivo,
     handleInactivarPlaza,
     exportToPDF,
